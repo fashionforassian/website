@@ -1,0 +1,18 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/about/page": "/about",
+  "/cart/page": "/cart",
+  "/category/[slug]/page": "/category/[slug]",
+  "/collections/page": "/collections",
+  "/contact/page": "/contact",
+  "/favicon.ico/route": "/favicon.ico",
+  "/men/page": "/men",
+  "/new-arrivals/page": "/new-arrivals",
+  "/page": "/",
+  "/product/[slug]/page": "/product/[slug]",
+  "/products/page": "/products",
+  "/sale/page": "/sale",
+  "/search/page": "/search",
+  "/women/page": "/women"
+}

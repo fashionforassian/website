@@ -353,6 +353,10 @@ export const categoryMeta: Record<Category, { title: string; banner: string }> =
     banner:
       "https://images.pexels.com/photos/5378700/pexels-photo-5378700.jpeg?auto=compress&cs=tinysrgb&w=1600",
   },
+  kids: {
+  title: "Kids",
+  banner: "https://images.pexels.com/photos/1620760/pexels-photo-1620760.jpeg?auto=compress&cs=tinysrgb&w=1600",
+  },
   women: {
     title: "Womenswear",
     banner:

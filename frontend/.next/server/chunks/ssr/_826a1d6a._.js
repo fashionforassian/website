@@ -1,0 +1,3 @@
+module.exports=[9630,(a,b,c)=>{"use strict";b.exports=a.r(2827).vendored["react-ssr"].ReactDOM},81571,a=>{"use strict";var b=a.i(81629),c=a.i(84365),d=a.i(37277);function e({product:a,size:e,color:f,className:g}){let{addToCart:h}=(0,d.useCart)(),[i,j]=(0,c.useState)(!1);return(0,b.jsx)("button",{type:"button",onClick:()=>{h({productId:a.id,slug:a.slug,name:a.name,image:a.image,price:a.price,size:e,color:f,quantity:1}),j(!0),window.setTimeout(()=>j(!1),1200)},className:g??"border border-[#111111] px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-[#111111] hover:bg-[#111111] hover:text-white",children:i?"Added":"Add To Cart"})}a.s(["default",()=>e])}];
+
+//# sourceMappingURL=_826a1d6a._.js.map
