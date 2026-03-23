@@ -1,112 +1,101 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Environment, ContactShadows } from "@react-three/drei";
-import { useRef } from "react";
-import { useScroll } from "framer-motion";
+import { ContactShadows, Environment, Html, OrbitControls, useGLTF } from "@react-three/drei";
+import { Suspense, useEffect, useRef } from "react";
+import { useScroll, type MotionValue } from "framer-motion";
 import * as THREE from "three";
 
-function ClothModel({ scrollYProgress }: { scrollYProgress: any }) {
+type TraversableObject = THREE.Object3D & {
+  isMesh?: boolean;
+  castShadow?: boolean;
+  receiveShadow?: boolean;
+};
+
+function ClothModel({ scrollYProgress }: { scrollYProgress: MotionValue<number> }) {
   const { scene } = useGLTF("/models/cloth.glb");
   const ref = useRef<THREE.Group>(null);
 
-  // Prepare model for shadows
-  useFrame(() => {
-    if (scene) {
-      scene.traverse((child: any) => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
-      });
+  useEffect(() => {
+    scene.traverse((child) => {
+      const mesh = child as TraversableObject;
+
+      if (mesh.isMesh) {
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      }
+    });
+  }, [scene]);
+
+  useFrame((state) => {
+    if (!ref.current) {
+      return;
     }
-  });
 
-  useFrame(() => {
-    if (!ref.current) return;
-
-    // 1. ROTATION CONTROLLED BY SCROLL
-    // Get the current progress (0 to 1) from the sticky container
-    const progress = scrollYProgress.get();
-    
-    // Map 0-1 progress to 0 to 720 degrees (2 full rotations)
-    // We use lerp for smooth easing, but track the target tightly
-    const targetRotation = progress * Math.PI * 4; 
-    
-    // Smoothing: Lower damping value = smoother/slower reaction
-    ref.current.rotation.y = THREE.MathUtils.lerp(
-      ref.current.rotation.y, 
-      targetRotation, 
-      0.1
-    );
-
-    // 2. EXTRA ANIMATION: Floating & Breathing
-    // Add a subtle floating motion based on time, not scroll
-    const time = performance.now() * 0.001;
-    ref.current.position.y = 1.2 + Math.sin(time) * 0.05;
+    const normalizedProgress = Math.min(scrollYProgress.get() / 0.9, 1);
+    const targetRotation = normalizedProgress * Math.PI * 1.2;
+    ref.current.rotation.y = THREE.MathUtils.lerp(ref.current.rotation.y, targetRotation, 0.035);
+    ref.current.position.y = 1.2 + Math.sin(state.clock.elapsedTime) * 0.05;
   });
 
   return <primitive ref={ref} object={scene} scale={0.3} position={[0, 1.6, 0]} />;
 }
 
+function SceneFallback() {
+  return (
+    <Html center>
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-neutral-200 bg-white/85 px-6 py-5 text-neutral-600 shadow-lg backdrop-blur-sm">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50">
+          <div className="h-6 w-6 animate-[pulse_2.8s_ease-in-out_infinite] rounded-full border border-neutral-300 bg-neutral-200/70" />
+        </div>
+        <div className="text-xs uppercase tracking-[0.2em]">Loading 3D Model</div>
+      </div>
+    </Html>
+  );
+}
+
+useGLTF.preload("/models/cloth.glb");
+
 export default function ClothGLBViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // This hook tracks scroll specifically for the containerRef
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start start", "end end"] // Starts when top hits top, ends when bottom hits bottom
+    offset: ["start start", "end end"],
   });
 
   return (
-    // This container creates the "stuck" area. 
-    // Height is 400vh, meaning user scrolls 4 screens worth of space here.
-    <div ref={containerRef} className="relative w-full h-[400vh] bg-black">
-      
-      {/* The Sticky Wrapper - This stays on screen while the parent scrolls */}
-      <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
-        
-        {/* Gradient Background for vibe */}
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 via-black to-zinc-900 pointer-events-none" />
-        
-        {/* Decorative Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
+    <div ref={containerRef} className="relative h-[180vh] w-full bg-[#f6f1e8]">
+      <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,#fffdf8_0%,#f6f1e8_45%,#ebe3d5_100%)]" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#d9c3a6]/30 blur-[130px]" />
 
-        <Canvas shadows camera={{ position: [0, 1.6, 6], fov: 40 }}>
-          <ambientLight intensity={0.5} />
-          
-          {/* Main Light */}
-          <directionalLight 
-            position={[5, 5, 5]} 
-            intensity={2.5} 
-            castShadow 
-          />
-          
-          {/* Rim Lights for that "Amazing" look */}
-          <pointLight position={[-5, 2, -2]} intensity={10} color="#4f46e5" /> {/* Indigo */}
-          <pointLight position={[5, 2, -2]} intensity={10} color="#ec4899" /> {/* Pink */}
-
-          <ClothModel scrollYProgress={scrollYProgress} />
-
-          {/* Ground Shadows */}
+        <Canvas
+          dpr={[1, 1.5]}
+          shadows
+          gl={{ antialias: false, powerPreference: "high-performance" }}
+          camera={{ position: [0, 1.6, 6], fov: 40 }}
+        >
+          <ambientLight intensity={1.15} />
+          <directionalLight position={[5, 6, 5]} intensity={2.6} castShadow color="#fff7ea" />
+          <pointLight position={[-4, 3, -2]} intensity={3.2} color="#f3d2b4" />
+          <pointLight position={[4, 2, -1]} intensity={2.4} color="#f6efe4" />
+          <Suspense fallback={<SceneFallback />}>
+            <ClothModel scrollYProgress={scrollYProgress} />
+            <Environment preset="city" />
+          </Suspense>
           <ContactShadows
             position={[0, 0, 0]}
-            opacity={0.5}
-            scale={20}
+            opacity={0.45}
+            scale={18}
             blur={2}
             far={10}
-            color="#000"
+            color="#8d7b66"
           />
-
-          <Environment preset="city" />
-          
-          {/* OrbitControls disabled because we want scroll to control rotation */}
           <OrbitControls enableZoom={false} enableRotate={false} enablePan={false} />
         </Canvas>
-        
-        {/* UI Overlay - Optional Text to guide user */}
-        <div className="absolute bottom-10 left-0 w-full text-center text-white pointer-events-none">
-          <p className="text-sm opacity-50 animate-bounce">Scroll to Rotate</p>
+
+        <div className="pointer-events-none absolute bottom-10 left-0 w-full text-center text-[#5f5242]">
+          <p className="text-sm opacity-70">Slow scroll to inspect the cloth form</p>
         </div>
       </div>
     </div>

@@ -17,7 +17,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Fashion Asia",
+  title: "Fassion 4 Asian",
   description: "Modern fast-fashion editorial commerce experience",
 };
 

@@ -1,1 +1,15 @@
-{}
+{
+  "[project]/components/ClothGLBViewer.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/components/ClothGLBViewer.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/c1f3c_three_build_three_core_9934bd06.js",
+      "static/chunks/c1f3c_three_build_three_module_d85068c8.js",
+      "static/chunks/c1f3c_three_build_three_module_0ad1d41c.js",
+      "static/chunks/16c15_@react-three_fiber_dist_c1d2f7cd._.js",
+      "static/chunks/a9c8b_three-stdlib_a9c8f1b4._.js",
+      "static/chunks/node_modules__pnpm_5c45395c._.js",
+      "static/chunks/components_ClothGLBViewer_tsx_805e59d7._.js",
+      "static/chunks/components_ClothGLBViewer_tsx_9b8672a8._.js"
+    ]
+  }
+}

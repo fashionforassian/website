@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice, products } from "@/lib/data";
-
-const arrivals = products.filter((item) => item.isNew);
+import { getVisibleProducts } from "@/lib/catalog";
+import { formatPrice } from "@/lib/data";
 
 const drops = [
   { week: "Drop 01", date: "March 03", focus: "Soft tailoring and modern linen" },
@@ -10,7 +9,10 @@ const drops = [
   { week: "Drop 03", date: "March 17", focus: "Accessories and footwear edit" },
 ];
 
-export default function NewArrivalsPage() {
+export default async function NewArrivalsPage() {
+  const products = await getVisibleProducts();
+  const arrivals = products.filter((item) => item.isNew);
+
   return (
     <main className="mx-auto w-full max-w-[1400px] px-4 py-10 md:px-8 md:py-14">
       <header className="mb-10 border-b border-neutral-200 pb-6">
@@ -40,7 +42,7 @@ export default function NewArrivalsPage() {
               href={`/product/${item.slug}`}
               className="group grid gap-4 border border-neutral-200 p-4 sm:grid-cols-[160px,1fr]"
             >
-              <div className="relative h-44 bg-neutral-100 sm:h-40">
+              <div className="relative aspect-[4/5] bg-neutral-100 sm:w-40">
                 <Image src={item.image} alt={item.name} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" />
               </div>
               <div className="flex flex-col justify-between">

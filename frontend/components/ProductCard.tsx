@@ -8,9 +8,12 @@ type ProductCardProps = {
 };
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const isAvailable = product.status === "active" && product.inventory > 0;
+  const isOnSale = Boolean(product.isSale && product.compareAtPrice);
+
   return (
     <article className="group">
-      <div className="relative h-80 overflow-hidden bg-neutral-100">
+      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
         <Image
           src={product.image}
           alt={product.name}
@@ -23,10 +26,32 @@ export default function ProductCard({ product }: ProductCardProps) {
         >
           Quick View
         </Link>
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          {product.isFeatured ? (
+            <span className="bg-[#111111] px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-white">
+              Featured
+            </span>
+          ) : null}
+          {product.isNew ? (
+            <span className="bg-white px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-[#111111]">
+              New
+            </span>
+          ) : null}
+          {!isAvailable ? (
+            <span className="bg-red-600 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-white">
+              Out Of Stock
+            </span>
+          ) : null}
+        </div>
       </div>
       <div className="mt-3 space-y-1">
         <h3 className="text-sm uppercase tracking-[0.12em] text-[#111111]">{product.name}</h3>
-        <p className="text-sm text-[#222222]">{formatPrice(product.price)}</p>
+        <div className="flex items-center gap-2 text-sm">
+          <p className="text-[#222222]">{formatPrice(product.price)}</p>
+          {isOnSale ? (
+            <p className="text-neutral-400 line-through">{formatPrice(product.compareAtPrice ?? 0)}</p>
+          ) : null}
+        </div>
         <AddToCartButton
           product={{
             id: product.id,
@@ -34,6 +59,8 @@ export default function ProductCard({ product }: ProductCardProps) {
             name: product.name,
             image: product.image,
             price: product.price,
+            inventory: product.inventory,
+            status: product.status,
           }}
           size={product.sizes[0]}
           color={product.colors[0]}

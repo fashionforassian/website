@@ -1,81 +1,77 @@
-"use client";
+import { type ReactNode } from "react";
 
-import { motion } from "framer-motion";
+type USPItem = {
+  text: string;
+  desc: string;
+  icon: ReactNode;
+};
 
-const uspItems = [
-  { icon: "✈️", text: "Express Delivery", desc: "Within 24-48 hours" },
-  { icon: "✨", text: "Curated Capsules", desc: "Hand-selected pieces" },
-  { icon: "♻️", text: "14-day Returns", desc: "Hassle-free returns" },
-  { icon: "🔒", text: "Secure Checkout", desc: "100% encrypted" },
+const uspItems: USPItem[] = [
+  {
+    text: "Express Delivery",
+    desc: "Within 24-48 hours",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <path d="M3 16h11" />
+        <path d="M3 12h8" />
+        <path d="M3 8h5" />
+        <path d="M14 8h4l3 4v4h-2" />
+        <path d="M14 8v8" />
+        <circle cx="8" cy="18" r="2" />
+        <circle cx="18" cy="18" r="2" />
+      </svg>
+    ),
+  },
+  {
+    text: "Curated Capsules",
+    desc: "Hand-selected pieces",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <path d="M12 3l2.8 5.7L21 9.6l-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9L12 3z" />
+      </svg>
+    ),
+  },
+  {
+    text: "14-day Returns",
+    desc: "Hassle-free returns",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <path d="M8 7H4v4" />
+        <path d="M4 11a8 8 0 1 0 2.3-5.6L4 7" />
+      </svg>
+    ),
+  },
+  {
+    text: "Secure Checkout",
+    desc: "100% encrypted",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <rect x="4" y="10" width="16" height="10" rx="2" />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+      </svg>
+    ),
+  },
 ];
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.15,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" as const },
-  },
-};
-
-const iconVariants = {
-  idle: { y: 0, scale: 1 },
-  hover: { y: -8, scale: 1.1, transition: { duration: 0.3, ease: "easeOut" as const } },
-};
 
 export default function AnimatedUSP() {
   return (
-    <section className="border-b border-neutral-200 bg-gradient-to-b from-white to-neutral-50 py-20 md:py-28">
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-        variants={containerVariants}
-        className="mx-auto grid w-full max-w-7xl gap-6 px-4 md:grid-cols-4 lg:px-8"
-      >
+    <section className="border-b border-neutral-200 bg-[#fbfaf8]">
+      <div className="mx-auto grid w-full max-w-7xl gap-3 px-4 py-10 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
         {uspItems.map((item) => (
-          <motion.div
+          <article
             key={item.text}
-            variants={itemVariants}
-            whileHover="hover"
-            className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white px-8 py-10 shadow-sm transition-all duration-300 hover:border-neutral-400 hover:shadow-xl hover:scale-105"
+            className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-4"
           >
-            <motion.div
-              variants={iconVariants}
-              className="mb-6 text-6xl will-change-transform"
-            >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 text-neutral-900">
               {item.icon}
-            </motion.div>
-            <h3 className="font-semibold text-neutral-900 text-base mb-3">
-              {item.text}
-            </h3>
-            <p className="text-sm text-neutral-600 leading-relaxed">
-              {item.desc}
-            </p>
-            <motion.div 
-              className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-neutral-900 to-neutral-600 transition-all duration-300 group-hover:w-full" 
-              layoutId={`usp-${item.text}`}
-            />
-            <motion.div 
-              className="absolute inset-0 rounded-2xl pointer-events-none"
-              style={{
-                background: "radial-gradient(circle at 30% 30%, rgba(0,0,0,0.02) 0%, transparent 70%)"
-              }}
-            />
-          </motion.div>
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-neutral-900">{item.text}</h3>
+              <p className="mt-1 text-xs uppercase tracking-[0.12em] text-neutral-500">{item.desc}</p>
+            </div>
+          </article>
         ))}
-      </motion.div>
+      </div>
     </section>
   );
 }

@@ -10,6 +10,8 @@ type AddToCartButtonProps = {
     name: string;
     image: string;
     price: number;
+    inventory?: number;
+    status?: "active" | "draft" | "archived";
   };
   size?: string;
   color?: string;
@@ -24,8 +26,13 @@ export default function AddToCartButton({
 }: AddToCartButtonProps) {
   const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
+  const isAvailable = (product.status ?? "active") === "active" && (product.inventory ?? 1) > 0;
 
   const handleAdd = () => {
+    if (!isAvailable) {
+      return;
+    }
+
     addToCart({
       productId: product.id,
       slug: product.slug,
@@ -44,13 +51,14 @@ export default function AddToCartButton({
   return (
     <button
       type="button"
+      disabled={!isAvailable}
       onClick={handleAdd}
       className={
         className ??
-        "border border-[#111111] px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-[#111111] hover:bg-[#111111] hover:text-white"
+        "border border-[#111111] px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-[#111111] hover:bg-[#111111] hover:text-white disabled:cursor-not-allowed disabled:border-neutral-300 disabled:text-neutral-400 disabled:hover:bg-transparent disabled:hover:text-neutral-400"
       }
     >
-      {added ? "Added" : "Add To Cart"}
+      {!isAvailable ? "Out Of Stock" : added ? "Added" : "Add To Cart"}
     </button>
   );
 }

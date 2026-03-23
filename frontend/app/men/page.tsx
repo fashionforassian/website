@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice, products } from "@/lib/data";
-
-const menProducts = products.filter((item) => item.category === "men");
+import { getVisibleProducts } from "@/lib/catalog";
+import { formatPrice } from "@/lib/data";
 
 const wardrobeNotes = [
   {
@@ -19,7 +18,10 @@ const wardrobeNotes = [
   },
 ];
 
-export default function MenPage() {
+export default async function MenPage() {
+  const products = await getVisibleProducts();
+  const menProducts = products.filter((item) => item.category === "men");
+
   return (
     <main>
       <section className="mx-auto grid w-full max-w-[1400px] gap-6 px-4 py-10 md:grid-cols-[1.1fr,1fr] md:px-8 md:py-14">
@@ -70,7 +72,7 @@ export default function MenPage() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {menProducts.slice(0, 8).map((item) => (
             <Link key={item.id} href={`/product/${item.slug}`} className="group border border-neutral-200 p-3">
-              <div className="relative h-72 overflow-hidden bg-neutral-100">
+              <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
                 <Image src={item.image} alt={item.name} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" />
               </div>
               <h3 className="mt-3 text-sm uppercase tracking-[0.12em] text-[#111111]">{item.name}</h3>

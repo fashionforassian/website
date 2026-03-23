@@ -145,3 +145,5 @@ export function useCart(): CartContextValue {
 
   return context;
 }
+
+export type { CartItem };

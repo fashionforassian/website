@@ -1,24 +1,52 @@
 export type Category = "men" | "women" | "accessories" | "footwear" | "kids";
 
+export type ProductStatus = "active" | "draft" | "archived";
+
+export type ProductColorVariant = {
+  id: string;
+  name: string;
+  swatch: string;
+  image: string;
+  images: string[];
+};
+
 export type Product = {
   id: string;
   slug: string;
   name: string;
+  sku: string;
   price: number;
+  compareAtPrice: number | null;
   category: Category;
   colors: string[];
   sizes: string[];
   image: string;
   images: string[];
+  colorVariants: ProductColorVariant[];
   description: string;
   fabricCare: string;
   popularity: number;
+  inventory: number;
+  status: ProductStatus;
   isNew: boolean;
+  isFeatured: boolean;
+  isSale: boolean;
+  tags: string[];
 };
+
+export type SeedProduct = Omit<
+  Product,
+  "sku" | "compareAtPrice" | "inventory" | "status" | "isFeatured" | "isSale" | "tags" | "colorVariants"
+> &
+  Partial<
+    Pick<
+      Product,
+      "sku" | "compareAtPrice" | "inventory" | "status" | "isFeatured" | "isSale" | "tags" | "colorVariants"
+    >
+  >;
 
 export const navCategories: Array<{ label: string; href: string }> = [
   { label: "Men", href: "/men" },
-  { label: "Women", href: "/women" },
   { label: "Kids", href: "/kids" },
   { label: "New Arrivals", href: "/new-arrivals" },
   { label: "Collections", href: "/collections" },
@@ -58,12 +86,6 @@ export const categoryShowcase: Array<{
       "https://images.pexels.com/photos/1124465/pexels-photo-1124465.jpeg?auto=compress&cs=tinysrgb&w=1200",
   },
   {
-    name: "Women",
-    slug: "women",
-    image:
-      "https://images.unsplash.com/photo-1495385794356-15371f348c31?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
     name: "Accessories",
     slug: "accessories",
     image:
@@ -77,7 +99,7 @@ export const categoryShowcase: Array<{
   },
 ];
 
-export const products: Product[] = [
+export const seedProducts: SeedProduct[] = [
   {
     id: "p-1",
     slug: "tailored-linen-blazer",
@@ -375,7 +397,7 @@ export const categoryMeta: Record<Category, { title: string; banner: string }> =
 };
 
 export function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`;
+  return `₹${price.toFixed(2)}`;
 }
 
 export function sortProducts(items: Product[], sort: string | undefined): Product[] {

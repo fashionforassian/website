@@ -51,7 +51,7 @@ export default function HeroSection() {
       >
         <div className="max-w-2xl text-white">
           <p className="mb-4 text-xs uppercase tracking-[0.22em]">
-            Fashion Asia Spring Summer 2026
+              Fassion 4 Asian Spring Summer 2026
           </p>
 
           <h1 className="text-5xl md:text-7xl font-bold leading-tight">

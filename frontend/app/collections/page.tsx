@@ -24,7 +24,7 @@ export default function CollectionsPage() {
   return (
     <main>
       <section className="mx-auto w-full max-w-[1200px] px-4 py-12 text-center md:px-8 md:py-16">
-        <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Fashion Asia</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Fassion 4 Asian</p>
         <h1 className="mt-3 font-heading text-5xl text-[#111111] md:text-6xl">Collections</h1>
         <p className="mx-auto mt-5 max-w-3xl text-sm leading-7 text-[#222222]">
           A curated sequence of seasonal narratives where each collection is built around material, movement, and city context.

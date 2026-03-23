@@ -1,0 +1,48 @@
+[
+  {
+    "id": "ord_1774004457845",
+    "customerName": "divyanshu",
+    "customerEmail": "divyanshusinghchouhan@verbolabs.com",
+    "createdAt": "2026-03-20T11:00:57.845Z",
+    "status": "placed",
+    "items": [
+      {
+        "lineId": "p-1774000972801-S-Navy",
+        "productId": "p-1774000972801",
+        "slug": "denim-shirt",
+        "name": "Denim Shirt",
+        "image": "/uploads/1774004265066-f03d38f9-8395-440f-9783-9afe40a86533.jpeg",
+        "price": 700,
+        "size": "S",
+        "color": "Navy",
+        "quantity": 1
+      }
+    ],
+    "subtotal": 700,
+    "shipping": 0,
+    "total": 700
+  },
+  {
+    "id": "ord_1773998012919",
+    "customerName": "sfvkksddsvfd",
+    "customerEmail": "kvnfdkjnvkjdn@gmail.com",
+    "createdAt": "2026-03-20T09:13:32.919Z",
+    "status": "placed",
+    "items": [
+      {
+        "lineId": "p-1773997807781-xxxs xxxs xxxs xxxs xxxs xxxs xxxs-white black green bargandi",
+        "productId": "p-1773997807781",
+        "slug": "jacket",
+        "name": "Sumit ka Jacket",
+        "image": "/uploads/1773997800982-f539c120-0af1-435d-a62c-bf2c9b8a6c7f.png",
+        "price": 100000,
+        "size": "xxxs xxxs xxxs xxxs xxxs xxxs xxxs",
+        "color": "white black green bargandi",
+        "quantity": 1
+      }
+    ],
+    "subtotal": 100000,
+    "shipping": 0,
+    "total": 100000
+  }
+]

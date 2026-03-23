@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useCart } from "@/components/providers/CartProvider";
 import { navCategories } from "@/lib/data";
@@ -12,14 +13,6 @@ const megaMenu = {
     "Shirts",
     "Trousers",
     "Denim",
-    "Footwear",
-    "Accessories",
-  ],
-  women: [
-    "Dresses",
-    "Tailoring",
-    "Knitwear",
-    "Outerwear",
     "Footwear",
     "Accessories",
   ],
@@ -35,8 +28,16 @@ const megaMenu = {
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState<"men" | "women" | "kids" | null>(null);
+  const [activeMenu, setActiveMenu] = useState<"men" | "kids" | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { cartCount } = useCart();
+  const router = useRouter();
+
+  function submitSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const term = searchQuery.trim();
+    router.push(term ? `/search?q=${encodeURIComponent(term)}` : "/search");
+  }
 
   return (
     <header
@@ -54,13 +55,13 @@ export default function Navbar() {
         </button>
 
         <Link href="/" className="font-heading text-xl tracking-[0.2em] text-[#111111]">
-          FASHION ASIA
+          FASSION 4 ASIAN
         </Link>
 
         <nav className="hidden items-center gap-7 text-xs font-medium uppercase tracking-[0.18em] md:flex">
           {navCategories.map((item) => {
-            const hasMegaMenu = item.label === "Men" || item.label === "Women" || item.label === "Kids";
-            const menuKey = item.label.toLowerCase() as "men" | "women" | "kids";
+            const hasMegaMenu = item.label === "Men" || item.label === "Kids";
+            const menuKey = item.label.toLowerCase() as "men" | "kids";
 
             return (
               <div
@@ -79,9 +80,22 @@ export default function Navbar() {
           })}
         </nav>
 
-        <div className="flex items-center gap-4 text-xs uppercase tracking-[0.15em]">
-          <Link href="/search" className="hidden md:inline hover:text-[#111111]">
-            Search
+        <div className="flex items-center gap-3 text-xs uppercase tracking-[0.15em]">
+          <form onSubmit={submitSearch} className="hidden md:block">
+            <div className="flex h-10 items-center rounded-full border border-neutral-300 bg-white px-3 transition focus-within:border-[#111111]">
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search products"
+                className="w-40 bg-transparent text-[11px] normal-case tracking-normal text-[#111111] outline-none placeholder:text-neutral-400 lg:w-52"
+              />
+              <button type="submit" className="ml-2 text-neutral-500 hover:text-[#111111]" aria-label="Search products">
+                Go
+              </button>
+            </div>
+          </form>
+          <Link href="/admin" className="hidden md:inline hover:text-[#111111]">
+            Admin
           </Link>
           <Link href="/cart" className="hover:text-[#111111]">
             Cart ({cartCount})
@@ -99,7 +113,7 @@ export default function Navbar() {
         >
           <div className="mx-auto max-w-[1400px] px-8 py-6">
             <p className="mb-5 text-[11px] uppercase tracking-[0.2em] text-neutral-500 font-semibold">
-              {activeMenu === "men" ? "Men's Collection" : activeMenu === "women" ? "Women's Collection" : "Kids' Collection"}
+              {activeMenu === "men" ? "Men's Collection" : "Kids' Collection"}
             </p>
             <ul className="grid grid-cols-3 gap-y-3 gap-x-8 text-sm">
               {megaMenu[activeMenu].map((item, idx) => (
@@ -132,6 +146,29 @@ export default function Navbar() {
                 </Link>
               </li>
             ))}
+            <li className="pt-2">
+              <form
+                onSubmit={(event) => {
+                  submitSearch(event);
+                  setMobileOpen(false);
+                }}
+              >
+                <div className="flex h-11 items-center rounded-full border border-neutral-300 bg-white px-3">
+                  <input
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="Search products"
+                    className="w-full bg-transparent text-sm normal-case tracking-normal text-[#111111] outline-none placeholder:text-neutral-400"
+                  />
+                  <button type="submit" className="text-neutral-500">Go</button>
+                </div>
+              </form>
+            </li>
+            <li>
+              <Link href="/admin" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
+                Admin
+              </Link>
+            </li>
             <li>
               <Link href="/about" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
                 About

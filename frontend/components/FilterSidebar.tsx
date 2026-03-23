@@ -1,45 +1,93 @@
 type FilterSidebarProps = {
   title?: string;
+  categories: string[];
+  sizes: string[];
+  colors: string[];
+  selectedCategory: string;
+  selectedSize: string;
+  selectedColor: string;
+  selectedPrice: string;
+  onCategoryChange: (value: string) => void;
+  onSizeChange: (value: string) => void;
+  onColorChange: (value: string) => void;
+  onPriceChange: (value: string) => void;
+  onReset: () => void;
 };
 
-const categories = ["All", "Men", "Women", "Accessories", "Footwear"];
-const sizes = ["XS", "S", "M", "L", "XL", "One Size"];
-const colors = ["Black", "White", "Beige", "Brown", "Muted Gold"];
+const priceRanges = [
+  { label: "All", value: "all" },
+  { label: "Under ₹100", value: "under-100" },
+  { label: "₹100 - ₹200", value: "100-200" },
+  { label: "Above ₹200", value: "over-200" },
+];
 
-export default function FilterSidebar({ title = "Filter" }: FilterSidebarProps) {
+export default function FilterSidebar({
+  title = "Filter",
+  categories,
+  sizes,
+  colors,
+  selectedCategory,
+  selectedSize,
+  selectedColor,
+  selectedPrice,
+  onCategoryChange,
+  onSizeChange,
+  onColorChange,
+  onPriceChange,
+  onReset,
+}: FilterSidebarProps) {
   return (
     <aside className="h-fit border border-neutral-200 p-5">
-      <h2 className="mb-5 text-xs uppercase tracking-[0.2em] text-[#111111]">{title}</h2>
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h2 className="text-xs uppercase tracking-[0.2em] text-[#111111]">{title}</h2>
+        <button
+          type="button"
+          onClick={onReset}
+          className="text-[11px] uppercase tracking-[0.16em] text-neutral-500 hover:text-[#111111]"
+        >
+          Reset
+        </button>
+      </div>
 
       <div className="space-y-6 text-sm">
         <section>
           <h3 className="mb-2 text-[11px] uppercase tracking-[0.18em] text-neutral-500">Category</h3>
-          <ul className="space-y-2 text-[#222222]">
+          <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
-              <li key={category} className="flex items-center gap-2">
-                <input type="checkbox" className="h-4 w-4 border-neutral-300" />
-                <span>{category}</span>
-              </li>
+              <button
+                key={category}
+                type="button"
+                onClick={() => onCategoryChange(category)}
+                className={`border px-3 py-1 text-xs uppercase tracking-[0.12em] ${
+                  selectedCategory === category
+                    ? "border-[#111111] bg-[#111111] text-white"
+                    : "border-neutral-300 text-[#222222] hover:border-[#111111]"
+                }`}
+              >
+                {category}
+              </button>
             ))}
-          </ul>
+          </div>
         </section>
 
         <section>
           <h3 className="mb-2 text-[11px] uppercase tracking-[0.18em] text-neutral-500">Price</h3>
-          <ul className="space-y-2 text-[#222222]">
-            <li className="flex items-center gap-2">
-              <input type="checkbox" className="h-4 w-4 border-neutral-300" />
-              <span>Under $100</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <input type="checkbox" className="h-4 w-4 border-neutral-300" />
-              <span>$100 - $200</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <input type="checkbox" className="h-4 w-4 border-neutral-300" />
-              <span>Above $200</span>
-            </li>
-          </ul>
+          <div className="flex flex-wrap gap-2">
+            {priceRanges.map((range) => (
+              <button
+                key={range.value}
+                type="button"
+                onClick={() => onPriceChange(range.value)}
+                className={`border px-3 py-1 text-xs uppercase tracking-[0.12em] ${
+                  selectedPrice === range.value
+                    ? "border-[#111111] bg-[#111111] text-white"
+                    : "border-neutral-300 text-[#222222] hover:border-[#111111]"
+                }`}
+              >
+                {range.label}
+              </button>
+            ))}
+          </div>
         </section>
 
         <section>
@@ -49,7 +97,12 @@ export default function FilterSidebar({ title = "Filter" }: FilterSidebarProps) 
               <button
                 key={size}
                 type="button"
-                className="border border-neutral-300 px-3 py-1 text-xs uppercase tracking-[0.12em] text-[#222222] hover:border-[#111111] hover:text-[#111111]"
+                onClick={() => onSizeChange(size)}
+                className={`border px-3 py-1 text-xs uppercase tracking-[0.12em] ${
+                  selectedSize === size
+                    ? "border-[#111111] bg-[#111111] text-white"
+                    : "border-neutral-300 text-[#222222] hover:border-[#111111] hover:text-[#111111]"
+                }`}
               >
                 {size}
               </button>
@@ -59,14 +112,22 @@ export default function FilterSidebar({ title = "Filter" }: FilterSidebarProps) 
 
         <section>
           <h3 className="mb-2 text-[11px] uppercase tracking-[0.18em] text-neutral-500">Color</h3>
-          <ul className="space-y-2 text-[#222222]">
+          <div className="flex flex-wrap gap-2">
             {colors.map((color) => (
-              <li key={color} className="flex items-center gap-2">
-                <input type="checkbox" className="h-4 w-4 border-neutral-300" />
-                <span>{color}</span>
-              </li>
+              <button
+                key={color}
+                type="button"
+                onClick={() => onColorChange(color)}
+                className={`border px-3 py-1 text-xs uppercase tracking-[0.12em] ${
+                  selectedColor === color
+                    ? "border-[#111111] bg-[#111111] text-white"
+                    : "border-neutral-300 text-[#222222] hover:border-[#111111]"
+                }`}
+              >
+                {color}
+              </button>
             ))}
-          </ul>
+          </div>
         </section>
       </div>
     </aside>

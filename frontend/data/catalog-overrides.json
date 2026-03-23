@@ -1,0 +1,111 @@
+{
+  "upserts": [
+    {
+      "id": "p-1774000615423",
+      "slug": "kids-full-dress",
+      "sku": "KDS-001",
+      "name": "Shirt And Short",
+      "price": 500,
+      "compareAtPrice": 1000,
+      "category": "kids",
+      "colors": [
+        "Navy Blue",
+        "Sky Blue"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "image": "/uploads/1774000560643-e328177b-5635-4e93-9a2a-2430734e989b.jpeg",
+      "images": [
+        "/uploads/1774000560643-e328177b-5635-4e93-9a2a-2430734e989b.jpeg"
+      ],
+      "description": "",
+      "fabricCare": "",
+      "popularity": 75,
+      "inventory": 1000,
+      "status": "active",
+      "isNew": true,
+      "isFeatured": true,
+      "isSale": true,
+      "tags": [
+        "kids cloths",
+        "baby",
+        "small"
+      ]
+    },
+    {
+      "id": "p-1774000972801",
+      "slug": "denim-shirt",
+      "sku": "MEN-001",
+      "name": "Denim Shirt",
+      "price": 700,
+      "compareAtPrice": 1500,
+      "category": "men",
+      "colors": [
+        "Blue",
+        "Navy"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "XS",
+        "3XL"
+      ],
+      "image": "/uploads/1774004238906-e38b7c77-b315-4cbb-b471-48c0b0699fea.jpeg",
+      "images": [
+        "/uploads/1774004238906-e38b7c77-b315-4cbb-b471-48c0b0699fea.jpeg",
+        "/uploads/1774004265066-f03d38f9-8395-440f-9783-9afe40a86533.jpeg"
+      ],
+      "colorVariants": [
+        {
+          "id": "default",
+          "name": "Blue",
+          "swatch": "#355C9A",
+          "image": "/uploads/1774004238906-e38b7c77-b315-4cbb-b471-48c0b0699fea.jpeg",
+          "images": [
+            "/uploads/1774004238906-e38b7c77-b315-4cbb-b471-48c0b0699fea.jpeg"
+          ]
+        },
+        {
+          "id": "navy-1774004257420",
+          "name": "Navy",
+          "swatch": "#1F2A44",
+          "image": "/uploads/1774004265066-f03d38f9-8395-440f-9783-9afe40a86533.jpeg",
+          "images": [
+            "/uploads/1774004265066-f03d38f9-8395-440f-9783-9afe40a86533.jpeg"
+          ]
+        }
+      ],
+      "description": "",
+      "fabricCare": "",
+      "popularity": 75,
+      "inventory": 20,
+      "status": "active",
+      "isNew": true,
+      "isFeatured": true,
+      "isSale": true,
+      "tags": []
+    }
+  ],
+  "deletedIds": [
+    "p-1773997807781",
+    "p-11",
+    "p-12",
+    "p-4",
+    "p-5",
+    "p-6",
+    "p-2",
+    "p-3",
+    "p-10",
+    "p-9",
+    "p-1",
+    "p-7",
+    "p-8"
+  ]
+}

@@ -12,6 +12,8 @@ type AddToCartControlsProps = {
     price: number;
     sizes: string[];
     colors: string[];
+    inventory: number;
+    status: "active" | "draft" | "archived";
   };
 };
 
@@ -20,8 +22,12 @@ export default function AddToCartControls({ product }: AddToCartControlsProps) {
   const [selectedSize, setSelectedSize] = useState<string>(product.sizes[0] ?? "One Size");
   const [selectedColor, setSelectedColor] = useState<string>(product.colors[0] ?? "Default");
   const [added, setAdded] = useState(false);
+  const isAvailable = product.status === "active" && product.inventory > 0;
 
-  const canAdd = useMemo(() => Boolean(selectedSize && selectedColor), [selectedSize, selectedColor]);
+  const canAdd = useMemo(
+    () => Boolean(selectedSize && selectedColor && isAvailable),
+    [isAvailable, selectedColor, selectedSize],
+  );
 
   const handleAdd = () => {
     if (!canAdd) {
@@ -99,8 +105,11 @@ export default function AddToCartControls({ product }: AddToCartControlsProps) {
         onClick={handleAdd}
         className="mt-8 w-full border border-[#111111] bg-[#111111] px-6 py-4 text-xs uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-[#111111] disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-300 disabled:text-white sm:w-auto"
       >
-        {added ? "Added To Cart" : "Add To Cart"}
+        {!isAvailable ? "Out Of Stock" : added ? "Added To Cart" : "Add To Cart"}
       </button>
+      <p className="mt-3 text-xs uppercase tracking-[0.14em] text-neutral-500">
+        {isAvailable ? `${product.inventory} In Stock` : "Currently unavailable"}
+      </p>
     </div>
   );
 }

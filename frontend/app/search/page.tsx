@@ -2,13 +2,45 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { formatPrice, products } from "@/lib/data";
+import { useEffect, useMemo, useState } from "react";
+import { formatPrice, type Product } from "@/lib/data";
 
 const quickTerms = ["Linen", "Tailoring", "Sneakers", "Accessories", "New"];
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setQuery(params.get("q") ?? "");
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadProducts() {
+      try {
+        const response = await fetch("/api/products");
+        const data = (await response.json()) as Product[];
+
+        if (active) {
+          setProducts(data);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadProducts();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const results = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -18,10 +50,11 @@ export default function SearchPage() {
     }
 
     return products.filter((item) => {
-      const haystack = `${item.name} ${item.description} ${item.category}`.toLowerCase();
+      const haystack =
+        `${item.name} ${item.description} ${item.category} ${item.tags.join(" ")}`.toLowerCase();
       return haystack.includes(term);
     });
-  }, [query]);
+  }, [products, query]);
 
   return (
     <main className="mx-auto w-full max-w-[1400px] px-4 py-10 md:px-8 md:py-14">
@@ -68,7 +101,9 @@ export default function SearchPage() {
           <p className="text-xs uppercase tracking-[0.14em] text-neutral-500">{results.length} Items</p>
         </div>
 
-        {results.length === 0 ? (
+        {loading ? (
+          <div className="border border-neutral-200 p-8 text-sm text-[#222222]">Loading catalog...</div>
+        ) : results.length === 0 ? (
           <div className="border border-neutral-200 p-8 text-sm text-[#222222]">
             No products found. Try another term.
           </div>
@@ -76,7 +111,7 @@ export default function SearchPage() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {results.map((item) => (
               <Link key={item.id} href={`/product/${item.slug}`} className="group border border-neutral-200 p-3">
-                <div className="relative h-72 overflow-hidden bg-neutral-100">
+                <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
                   <Image src={item.image} alt={item.name} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" />
                 </div>
                 <h3 className="mt-3 text-sm uppercase tracking-[0.12em] text-[#111111]">{item.name}</h3>

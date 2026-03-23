@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import FilterSidebar from "@/components/FilterSidebar";
 import ProductGrid from "@/components/ProductGrid";
-import { categoryMeta, products, type Category } from "@/lib/data";
+import { getVisibleProducts } from "@/lib/catalog";
+import { categoryMeta, type Category } from "@/lib/data";
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
@@ -12,7 +12,7 @@ type CategoryPageProps = {
 
 const itemsPerPage = 8;
 
-const validCategories: Category[] = ["men", "women", "accessories", "footwear"];
+const validCategories: Category[] = ["men", "accessories", "footwear", "kids"];
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { slug } = await params;
@@ -22,6 +22,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
 
   const currentCategory = slug as Category;
+  const products = await getVisibleProducts();
   const categoryProducts = products.filter((item) => item.category === currentCategory);
   const { page } = await searchParams;
   const currentPage = Math.max(1, Number(page ?? 1));
@@ -45,7 +46,19 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       </section>
 
       <section className="mx-auto mt-10 grid w-full max-w-[1400px] gap-8 px-4 md:px-8 lg:grid-cols-[280px,1fr]">
-        <FilterSidebar title="Refine Selection" />
+        <div className="border border-neutral-200 p-5">
+          <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Category Insights</p>
+          <h2 className="mt-3 font-heading text-3xl text-[#111111]">{meta.title}</h2>
+          <p className="mt-4 text-sm leading-7 text-[#222222]">
+            Browse the latest {meta.title.toLowerCase()} edit. Inventory, pricing, and merchandising
+            now update directly from the admin panel.
+          </p>
+          <div className="mt-6 space-y-2 text-xs uppercase tracking-[0.16em] text-neutral-500">
+            <p>{categoryProducts.length} Products</p>
+            <p>{categoryProducts.filter((item) => item.inventory > 0).length} Available</p>
+            <p>{categoryProducts.filter((item) => item.isFeatured).length} Featured</p>
+          </div>
+        </div>
         <div>
           <ProductGrid products={paginated} />
 

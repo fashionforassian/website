@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { formatPrice } from "@/lib/data";
 
 interface PremiumProductCardProps {
   id: string;
@@ -198,11 +199,11 @@ export default function PremiumProductCard({
               }}
               className="text-sm transition-all duration-300"
             >
-              ${priceDisplay.toFixed(2)}
+              {formatPrice(priceDisplay)}
             </motion.p>
             {originalPrice && (
               <motion.p className="text-xs text-neutral-400 line-through">
-                ${originalPrice.toFixed(2)}
+                {formatPrice(originalPrice)}
               </motion.p>
             )}
           </div>

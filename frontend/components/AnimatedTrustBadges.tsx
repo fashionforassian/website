@@ -1,84 +1,81 @@
-"use client";
+import { type ReactNode } from "react";
 
-import { motion } from "framer-motion";
-
-interface Badge {
+type Badge = {
   id: string;
-  icon: string;
   label: string;
   desc: string;
-  animationType: "bounce" | "rotate" | "scale" | "pulse";
-}
+  icon: ReactNode;
+};
 
 const badges: Badge[] = [
-  { id: "payment", icon: "🔒", label: "Secure Payment", desc: "Encrypted transactions", animationType: "pulse" },
-  { id: "shipping", icon: "🚚", label: "Fast Shipping", desc: "Orders shipped within 24h", animationType: "bounce" },
-  { id: "returns", icon: "↩️", label: "Easy Returns", desc: "14-day return period", animationType: "rotate" },
-  { id: "support", icon: "💬", label: "24/7 Support", desc: "Customer support available", animationType: "scale" },
+  {
+    id: "payment",
+    label: "Secure Payment",
+    desc: "Encrypted transactions",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="M3 10h18" />
+        <path d="M7 15h3" />
+      </svg>
+    ),
+  },
+  {
+    id: "shipping",
+    label: "Fast Shipping",
+    desc: "Orders shipped within 24h",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <path d="M3 16h11" />
+        <path d="M14 8h4l3 4v4h-2" />
+        <path d="M14 8v8" />
+        <circle cx="8" cy="18" r="2" />
+        <circle cx="18" cy="18" r="2" />
+      </svg>
+    ),
+  },
+  {
+    id: "returns",
+    label: "Easy Returns",
+    desc: "14-day return period",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <path d="M8 7H4v4" />
+        <path d="M4 11a8 8 0 1 0 2.3-5.6L4 7" />
+      </svg>
+    ),
+  },
+  {
+    id: "support",
+    label: "24/7 Support",
+    desc: "Customer support available",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
+        <path d="M5 18v-6a7 7 0 0 1 14 0v6" />
+        <path d="M5 14H3v3a2 2 0 0 0 2 2h2v-5H5z" />
+        <path d="M19 14h2v3a2 2 0 0 1-2 2h-2v-5h2z" />
+      </svg>
+    ),
+  },
 ];
-
-const getAnimationVariants = (type: string) => {
-  switch (type) {
-    case "bounce":
-      return {
-        y: [0, -12, 0, -6, 0],
-        transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" as const },
-      };
-    case "rotate":
-      return {
-        rotate: [0, 15, -15, 8, 0],
-        transition: { duration: 2.8, repeat: Infinity, ease: "easeInOut" as const },
-      };
-    case "scale":
-      return {
-        scale: [1, 1.15, 0.9, 1.05, 1],
-        transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" as const },
-      };
-    case "pulse":
-    default:
-      return {
-        opacity: [1, 0.5, 1],
-        scale: [1, 1.08, 1],
-        transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" as const },
-      };
-  }
-};
 
 export default function AnimatedTrustBadges() {
   return (
-    <section className="border-t border-neutral-200 bg-gradient-to-b from-white to-neutral-50">
-      <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-16 md:grid-cols-4 md:px-8 md:py-20">
-        {badges.map((badge, idx) => (
-          <motion.div
+    <section className="border-t border-neutral-200 bg-white">
+      <div className="mx-auto grid w-full max-w-7xl gap-3 px-4 py-10 md:grid-cols-2 lg:grid-cols-4 md:px-8">
+        {badges.map((badge) => (
+          <article
             key={badge.id}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: idx * 0.1 }}
-            className="group relative overflow-hidden rounded-xl border border-neutral-100 bg-white p-8 hover:shadow-xl transition-shadow duration-300"
+            className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-[#fbfaf8] px-4 py-4"
           >
-            {/* Gradient background on hover */}
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-br from-neutral-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{ pointerEvents: "none" }}
-            />
-            
-            <div className="relative z-10 flex flex-col items-center text-center">
-              <motion.div
-                className="mb-5 text-6xl will-change-transform"
-                animate={getAnimationVariants(badge.animationType)}
-              >
-                {badge.icon}
-              </motion.div>
-              <h3 className="font-semibold text-neutral-900 text-base mb-2">{badge.label}</h3>
-              <p className="text-sm text-neutral-600 leading-relaxed">{badge.desc}</p>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-900">
+              {badge.icon}
             </div>
-
-            {/* Decorative element */}
-            <motion.div 
-              className="absolute bottom-0 left-0 h-0.5 w-0 bg-gradient-to-r from-neutral-900 to-transparent group-hover:w-full transition-all duration-500"
-            />
-          </motion.div>
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-neutral-900">{badge.label}</h3>
+              <p className="mt-1 text-xs uppercase tracking-[0.12em] text-neutral-500">{badge.desc}</p>
+            </div>
+          </article>
         ))}
       </div>
     </section>

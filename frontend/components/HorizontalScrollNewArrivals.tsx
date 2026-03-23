@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { formatPrice } from "@/lib/data";
 
 interface Product {
   id: string;
@@ -228,9 +229,7 @@ export default function HorizontalScrollNewArrivals({
                   <h3 className="font-playfair text-lg font-light text-black mb-2 line-clamp-2">
                     {product.title}
                   </h3>
-                  <p className="text-sm font-medium text-black">
-                    ${product.price.toFixed(2)}
-                  </p>
+                  <p className="text-sm font-medium text-black">{formatPrice(product.price)}</p>
                 </motion.div>
               </Link>
             </motion.div>

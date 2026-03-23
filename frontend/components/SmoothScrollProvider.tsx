@@ -12,42 +12,40 @@ export default function SmoothScrollProvider({
   const rafIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Initialize Lenis for smooth scrolling
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smooth: true,
-      smoothTouch: false,
-      mouseMultiplier: 1,
-      touchMultiplier: 2,
-      wheelMultiplier: 1,
-    } as any);
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
 
-    lenisRef.current = lenis;
-
-    // Use Lenis's built-in RAF handler
-    function raf(time: number) {
-      lenis.raf(time);
-      rafIdRef.current = requestAnimationFrame(raf);
+    if (prefersReducedMotion || isTouchDevice) {
+      return;
     }
 
-    // Start the animation loop
-    rafIdRef.current = requestAnimationFrame(raf);
+    const start = () => {
+      const lenis = new Lenis({
+        duration: 0.85,
+        easing: (t: number) => 1 - Math.pow(1 - t, 3),
+        smoothWheel: true,
+        syncTouch: false,
+        wheelMultiplier: 0.9,
+      });
 
-    // Prevent Lenis from conflicting with scroll events
-    const handleWheel = (e: WheelEvent) => {
-      // Let Lenis handle the scroll
+      lenisRef.current = lenis;
+
+      function raf(time: number) {
+        lenis.raf(time);
+        rafIdRef.current = requestAnimationFrame(raf);
+      }
+
+      rafIdRef.current = requestAnimationFrame(raf);
     };
 
-    window.addEventListener("wheel", handleWheel, { passive: false });
+    const idleId = window.setTimeout(start, 120);
 
     return () => {
-      // Clean up
-      window.removeEventListener("wheel", handleWheel);
+      window.clearTimeout(idleId);
       if (rafIdRef.current) {
         cancelAnimationFrame(rafIdRef.current);
       }
-      lenis.destroy();
+      lenisRef.current?.destroy();
     };
   }, []);
 

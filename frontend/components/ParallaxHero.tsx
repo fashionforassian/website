@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 interface ParallaxHeroProps {
   title: string;
@@ -20,42 +20,31 @@ export default function ParallaxHero({
   backgroundImage = "https://images.unsplash.com/photo-1488554347313-52581516c25f?auto=format&fit=crop&w=2000&q=80",
 }: ParallaxHeroProps) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isVisible, setIsVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    setIsVisible(true);
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
 
-      const rect = containerRef.current.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-
-      setMousePosition({ x: x * 20, y: y * 20 });
-    };
-
-    const handleMouseLeave = () => {
-      setMousePosition({ x: 0, y: 0 });
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener("mousemove", handleMouseMove);
-      container.addEventListener("mouseleave", handleMouseLeave);
-
-      return () => {
-        container.removeEventListener("mousemove", handleMouseMove);
-        container.removeEventListener("mouseleave", handleMouseLeave);
-      };
+    if (frameRef.current) {
+      cancelAnimationFrame(frameRef.current);
     }
-  }, []);
+
+    frameRef.current = requestAnimationFrame(() => {
+      setMousePosition({ x: x * 20, y: y * 20 });
+    });
+  };
 
   return (
     <div
       ref={containerRef}
       className="relative h-screen w-full overflow-hidden bg-black"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setMousePosition({ x: 0, y: 0 })}
     >
       {/* Parallax Background Image */}
       <motion.div
@@ -106,8 +95,8 @@ export default function ParallaxHero({
           {subtitle && (
             <motion.p
               initial={{ opacity: 0, y: 20 }}
-              animate={isVisible ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
               className="mb-4 text-sm uppercase tracking-[0.3em] text-neutral-300"
             >
               {subtitle}
@@ -117,7 +106,7 @@ export default function ParallaxHero({
           {/* Main Title */}
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
-            animate={isVisible ? { opacity: 1, y: 0 } : {}}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.4 }}
             className="mb-6 font-playfair text-5xl font-light leading-tight text-white md:text-7xl"
           >
@@ -127,7 +116,7 @@ export default function ParallaxHero({
           {/* CTA Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={isVisible ? { opacity: 1, y: 0 } : {}}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <a
