@@ -62,8 +62,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   return (
     <section className="grid gap-8 lg:grid-cols-[1.05fr,0.95fr]">
-      <div className="grid gap-4 lg:grid-cols-[104px,1fr]">
-        <div className="order-2 flex gap-3 overflow-x-auto lg:order-1 lg:flex-col">
+      <div className="grid gap-4 lg:grid-cols-[96px,1fr] xl:grid-cols-[104px,1fr]">
+        <div className="order-2 flex gap-3 overflow-x-auto pb-1 lg:order-1 lg:flex-col lg:overflow-visible">
           {galleryImages.map((image, index) => {
             const isActive = index === selectedImageIndex;
 
@@ -72,7 +72,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 key={`${selectedVariant?.id ?? "default"}-${image}-${index}`}
                 type="button"
                 onClick={() => setSelectedImageIndex(index)}
-                className={`relative aspect-[4/5] w-20 flex-none overflow-hidden border transition lg:w-24 ${
+                className={`relative aspect-[4/5] w-[4.5rem] flex-none overflow-hidden border transition sm:w-20 lg:w-24 ${
                   isActive ? "border-[#111111]" : "border-neutral-200 hover:border-neutral-400"
                 }`}
               >
@@ -82,14 +82,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           })}
         </div>
 
-        <div className="order-1 relative aspect-[4/5] overflow-hidden bg-neutral-100 lg:order-2">
+        <div className="order-1 relative aspect-[4/5] overflow-hidden rounded-2xl bg-neutral-100 lg:order-2">
           <Image src={currentImage} alt={product.name} fill priority className="object-cover" />
         </div>
       </div>
 
       <article className="max-w-xl">
-        <h1 className="font-heading text-4xl text-[#111111]">{product.name}</h1>
-        <div className="mt-4 flex items-center gap-3">
+        <h1 className="font-heading text-3xl text-[#111111] sm:text-4xl">{product.name}</h1>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <p className="text-2xl text-[#222222]">{formatPrice(product.price)}</p>
           {product.compareAtPrice ? (
             <p className="text-base text-neutral-400 line-through">{formatPrice(product.compareAtPrice)}</p>
@@ -103,7 +103,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               {selectedVariant?.name ?? product.colors[0]}
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             {colorVariants.map((variant) => {
               const isActive = variant.id === selectedColorId;
 
@@ -112,7 +112,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   key={variant.id}
                   type="button"
                   onClick={() => setSelectedColorId(variant.id)}
-                  className={`flex items-center gap-3 rounded-full border px-3 py-2 transition ${
+                  className={`flex items-center gap-2 rounded-full border px-3 py-2 transition sm:gap-3 ${
                     isActive
                       ? "border-[#111111] bg-[#111111] text-white"
                       : "border-neutral-300 bg-white text-[#111111] hover:border-[#111111]"
@@ -143,7 +143,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   key={size}
                   type="button"
                   onClick={() => setSelectedSize(size)}
-                  className={`min-w-12 border px-4 py-2 text-xs uppercase tracking-[0.12em] transition ${
+                  className={`min-w-12 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.12em] transition ${
                     isActive
                       ? "border-[#111111] bg-[#111111] text-white"
                       : "border-neutral-300 text-[#222222] hover:border-[#111111]"
@@ -160,7 +160,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           type="button"
           disabled={!isAvailable}
           onClick={handleAddToCart}
-          className="mt-8 w-full border border-[#111111] bg-[#111111] px-6 py-4 text-xs uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-[#111111] disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-300 disabled:text-white sm:w-auto"
+          className="mt-8 w-full rounded-full border border-[#111111] bg-[#111111] px-6 py-4 text-xs uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-[#111111] disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-300 disabled:text-white sm:w-auto"
         >
           {!isAvailable ? "Out Of Stock" : added ? "Added To Cart" : "Add To Cart"}
         </button>

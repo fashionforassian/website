@@ -92,16 +92,16 @@ export default function AdminProductEditorModal({
 
   return (
     <div
-      className="fixed inset-0 z-[80] bg-black/70 px-4 py-8"
+      className="fixed inset-0 z-[80] overflow-y-auto bg-black/70 px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8"
       onWheelCapture={(event) => event.stopPropagation()}
       onTouchMoveCapture={(event) => event.stopPropagation()}
     >
-      <div className="mx-auto flex h-full w-full max-w-6xl items-start justify-center">
-        <div className="flex max-h-full w-full flex-col overflow-hidden border border-neutral-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between gap-4 border-b border-neutral-200 px-6 py-5">
+      <div className="mx-auto flex min-h-full w-full max-w-6xl items-start justify-center">
+        <div className="flex max-h-[min(92vh,1100px)] w-full flex-col overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 px-4 py-4 sm:px-6 sm:py-5">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Product Editor</p>
-            <h2 className="mt-2 font-heading text-3xl text-[#111111]">
+            <h2 className="mt-2 font-heading text-2xl text-[#111111] sm:text-3xl">
               {selectedId ? "Edit Product" : "Create Product"}
             </h2>
           </div>
@@ -118,12 +118,12 @@ export default function AdminProductEditorModal({
           onSubmit={onSubmit}
           onWheelCapture={(event) => event.stopPropagation()}
           onTouchMoveCapture={(event) => event.stopPropagation()}
-          className="flex-1 overflow-y-auto overscroll-contain px-6 py-6"
+          className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-6"
         >
           <div className="space-y-8">
           {message ? <p className="text-sm text-[#222222]">{message}</p> : null}
 
-          <div className="grid gap-8 xl:grid-cols-[1.05fr,0.95fr]">
+          <div className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr] xl:gap-8">
             <div className="space-y-6">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="space-y-2">
@@ -183,16 +183,16 @@ export default function AdminProductEditorModal({
                 </label>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
-                <label className="flex items-center gap-3 border border-neutral-200 p-4">
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-4">
                   <input type="checkbox" checked={form.isNew} onChange={(e) => updateForm("isNew", e.target.checked)} />
                   <span className="text-sm text-[#222222]">Mark as new</span>
                 </label>
-                <label className="flex items-center gap-3 border border-neutral-200 p-4">
+                <label className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-4">
                   <input type="checkbox" checked={form.isFeatured} onChange={(e) => updateForm("isFeatured", e.target.checked)} />
                   <span className="text-sm text-[#222222]">Feature on storefront</span>
                 </label>
-                <label className="flex items-center gap-3 border border-neutral-200 p-4">
+                <label className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-4">
                   <input type="checkbox" checked={form.isSale} onChange={(e) => updateForm("isSale", e.target.checked)} />
                   <span className="text-sm text-[#222222]">Treat as sale item</span>
                 </label>
@@ -220,7 +220,7 @@ export default function AdminProductEditorModal({
                 reorderColorGalleryImages={reorderColorGalleryImages}
               />
 
-              <div className="border border-neutral-200 p-4">
+              <div className="rounded-2xl border border-neutral-200 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Fallback Cover Image</p>
@@ -245,7 +245,7 @@ export default function AdminProductEditorModal({
                 <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-neutral-500">
                   Cover uploads are auto-cropped to 4:5, resized, and compressed.
                 </p>
-                <div className="mt-4 overflow-hidden border border-neutral-200">
+                <div className="mt-4 overflow-hidden rounded-2xl border border-neutral-200">
                   {form.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -261,8 +261,8 @@ export default function AdminProductEditorModal({
                 </div>
               </div>
 
-              <div className="border border-neutral-200 p-4">
-                <div className="flex items-center justify-between gap-3">
+              <div className="rounded-2xl border border-neutral-200 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">General Gallery</p>
                     <p className="mt-1 text-sm text-[#222222]">Shared fallback images for every color variant.</p>
@@ -281,7 +281,7 @@ export default function AdminProductEditorModal({
                     form.images.map((image, index) => (
                       <div
                         key={`${image}-${index}`}
-                        className="border border-neutral-200 p-3"
+                        className="rounded-2xl border border-neutral-200 p-3"
                         draggable
                         onDragStart={(event) => event.dataTransfer.setData("text/gallery-index", String(index))}
                         onDragOver={(event) => event.preventDefault()}
@@ -293,7 +293,7 @@ export default function AdminProductEditorModal({
                           }
                         }}
                       >
-                        <div className="overflow-hidden border border-neutral-200">
+                        <div className="overflow-hidden rounded-xl border border-neutral-200">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={image}
@@ -326,7 +326,7 @@ export default function AdminProductEditorModal({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3 border-t border-neutral-200 pt-6">
+          <div className="flex flex-col gap-3 border-t border-neutral-200 pt-6 sm:flex-row sm:flex-wrap">
             <button type="submit" disabled={saving || uploading} className="border border-[#111111] bg-[#111111] px-6 py-3 text-xs uppercase tracking-[0.18em] text-white hover:bg-white hover:text-[#111111] disabled:cursor-not-allowed disabled:opacity-60">
               {saving ? "Saving..." : selectedId ? "Update Product" : "Create Product"}
             </button>

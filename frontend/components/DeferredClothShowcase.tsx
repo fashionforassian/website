@@ -34,9 +34,9 @@ export default function DeferredClothShowcase() {
   }, []);
 
   return (
-    <div ref={hostRef} className="relative min-h-[70vh] bg-[#f6f1e8]">
+    <div ref={hostRef} className="relative min-h-[52vh] bg-[#f6f1e8] sm:min-h-[60vh] lg:min-h-[70vh]">
       {!shouldMount ? (
-        <div className="relative flex h-[70vh] w-full items-center justify-center overflow-hidden bg-[#f6f1e8]">
+        <div className="relative flex h-[52vh] w-full items-center justify-center overflow-hidden bg-[#f6f1e8] sm:h-[60vh] lg:h-[70vh]">
           <Image
             src="/fabric.jpg"
             alt="3D preview"
@@ -49,7 +49,7 @@ export default function DeferredClothShowcase() {
               <div className="h-8 w-8 animate-[pulse_2.8s_ease-in-out_infinite] rounded-full border border-neutral-300 bg-neutral-200/80" />
             </div>
             <p className="text-sm uppercase tracking-[0.25em] text-[#7b6d5b]">3D Showcase</p>
-            <h3 className="mt-3 font-playfair text-4xl font-light">Interactive Cloth View</h3>
+            <h3 className="mt-3 font-playfair text-3xl font-light sm:text-4xl">Interactive Cloth View</h3>
             <p className="mt-4 text-sm text-[#7b6d5b]">Loading optimized scene as you reach this section.</p>
           </div>
         </div>

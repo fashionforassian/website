@@ -22,7 +22,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         />
         <Link
           href={`/product/${product.slug}`}
-          className="absolute bottom-3 left-3 border border-[#111111] bg-white px-4 py-2 text-[11px] uppercase tracking-[0.15em] text-[#111111] opacity-0 transition group-hover:opacity-100"
+          className="absolute bottom-3 left-3 border border-[#111111] bg-white px-3 py-2 text-[10px] uppercase tracking-[0.15em] text-[#111111] opacity-100 transition group-hover:opacity-100 sm:px-4 sm:text-[11px] sm:opacity-0"
         >
           Quick View
         </Link>
@@ -44,9 +44,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           ) : null}
         </div>
       </div>
-      <div className="mt-3 space-y-1">
-        <h3 className="text-sm uppercase tracking-[0.12em] text-[#111111]">{product.name}</h3>
-        <div className="flex items-center gap-2 text-sm">
+      <div className="mt-3 space-y-1.5">
+        <h3 className="line-clamp-2 text-sm uppercase tracking-[0.12em] text-[#111111]">{product.name}</h3>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
           <p className="text-[#222222]">{formatPrice(product.price)}</p>
           {isOnSale ? (
             <p className="text-neutral-400 line-through">{formatPrice(product.compareAtPrice ?? 0)}</p>

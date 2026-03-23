@@ -16,6 +16,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
@@ -23,6 +24,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-inter), Arial, sans-serif;
   overflow-x: hidden;
+  min-width: 320px;
 }
 
 .font-heading,
@@ -49,4 +51,23 @@ h1, h2, h3, h4, h5, h6 {
 /* Image optimization for performance */
 img {
   will-change: transform;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 15px;
+  }
 }

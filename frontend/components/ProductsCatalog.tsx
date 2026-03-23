@@ -99,10 +99,10 @@ export default function ProductsCatalog({
     <main className="mx-auto w-full max-w-[1400px] px-4 py-10 md:px-8 md:py-14">
       <header className="mb-8 border-b border-neutral-200 pb-5">
         <p className="mb-2 text-xs uppercase tracking-[0.2em] text-neutral-500">Fassion 4 Asian</p>
-        <h1 className="font-heading text-4xl text-[#111111]">Shop All</h1>
+        <h1 className="font-heading text-3xl text-[#111111] sm:text-4xl">Shop All</h1>
       </header>
 
-      <section className="mb-8 flex flex-wrap items-center gap-3 border border-neutral-200 p-4">
+      <section className="mb-8 flex flex-col items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 sm:flex-row sm:flex-wrap sm:items-center">
         <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Sort</p>
         {sortOptions.map((option) => {
           const isActive = initialSort === option.value;
@@ -111,7 +111,7 @@ export default function ProductsCatalog({
             <Link
               key={option.value}
               href={`/products?sort=${option.value}`}
-              className={`border px-3 py-2 text-[11px] uppercase tracking-[0.14em] transition ${
+              className={`rounded-full border px-3 py-2 text-[11px] uppercase tracking-[0.14em] transition ${
                 isActive
                   ? "border-[#111111] bg-[#111111] text-white"
                   : "border-neutral-300 text-[#222222] hover:border-[#111111]"
@@ -123,7 +123,7 @@ export default function ProductsCatalog({
         })}
       </section>
 
-      <div className="grid gap-8 lg:grid-cols-[280px,1fr]">
+      <div className="grid gap-6 xl:grid-cols-[280px,1fr]">
         <FilterSidebar
           title="Filter Products"
           categories={categories}
@@ -140,7 +140,7 @@ export default function ProductsCatalog({
           onReset={resetFilters}
         />
         <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs uppercase tracking-[0.14em] text-neutral-500">
+          <div className="flex flex-col gap-2 text-xs uppercase tracking-[0.14em] text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
             <span>{filteredProducts.length} Items</span>
             <span>{products.filter((product) => product.inventory === 0).length} Sold Out</span>
           </div>

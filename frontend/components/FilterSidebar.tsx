@@ -37,7 +37,7 @@ export default function FilterSidebar({
   onReset,
 }: FilterSidebarProps) {
   return (
-    <aside className="h-fit border border-neutral-200 p-5">
+    <aside className="h-fit rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5 lg:sticky lg:top-24">
       <div className="mb-5 flex items-center justify-between gap-3">
         <h2 className="text-xs uppercase tracking-[0.2em] text-[#111111]">{title}</h2>
         <button
@@ -49,7 +49,7 @@ export default function FilterSidebar({
         </button>
       </div>
 
-      <div className="space-y-6 text-sm">
+      <div className="space-y-5 text-sm">
         <section>
           <h3 className="mb-2 text-[11px] uppercase tracking-[0.18em] text-neutral-500">Category</h3>
           <div className="flex flex-wrap gap-2">
@@ -58,7 +58,7 @@ export default function FilterSidebar({
                 key={category}
                 type="button"
                 onClick={() => onCategoryChange(category)}
-                className={`border px-3 py-1 text-xs uppercase tracking-[0.12em] ${
+                className={`rounded-full border px-3 py-1.5 text-xs uppercase tracking-[0.12em] ${
                   selectedCategory === category
                     ? "border-[#111111] bg-[#111111] text-white"
                     : "border-neutral-300 text-[#222222] hover:border-[#111111]"
@@ -78,7 +78,7 @@ export default function FilterSidebar({
                 key={range.value}
                 type="button"
                 onClick={() => onPriceChange(range.value)}
-                className={`border px-3 py-1 text-xs uppercase tracking-[0.12em] ${
+                className={`rounded-full border px-3 py-1.5 text-xs uppercase tracking-[0.12em] ${
                   selectedPrice === range.value
                     ? "border-[#111111] bg-[#111111] text-white"
                     : "border-neutral-300 text-[#222222] hover:border-[#111111]"
@@ -98,7 +98,7 @@ export default function FilterSidebar({
                 key={size}
                 type="button"
                 onClick={() => onSizeChange(size)}
-                className={`border px-3 py-1 text-xs uppercase tracking-[0.12em] ${
+                className={`rounded-full border px-3 py-1.5 text-xs uppercase tracking-[0.12em] ${
                   selectedSize === size
                     ? "border-[#111111] bg-[#111111] text-white"
                     : "border-neutral-300 text-[#222222] hover:border-[#111111] hover:text-[#111111]"
@@ -118,7 +118,7 @@ export default function FilterSidebar({
                 key={color}
                 type="button"
                 onClick={() => onColorChange(color)}
-                className={`border px-3 py-1 text-xs uppercase tracking-[0.12em] ${
+                className={`rounded-full border px-3 py-1.5 text-xs uppercase tracking-[0.12em] ${
                   selectedColor === color
                     ? "border-[#111111] bg-[#111111] text-white"
                     : "border-neutral-300 text-[#222222] hover:border-[#111111]"

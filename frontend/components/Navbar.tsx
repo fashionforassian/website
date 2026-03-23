@@ -44,21 +44,24 @@ export default function Navbar() {
       className="sticky top-0 z-50 border-b border-neutral-200 bg-white/95 backdrop-blur"
       onMouseLeave={() => setActiveMenu(null)}
     >
-      <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between px-4 md:px-8">
+      <div className="mx-auto flex min-h-16 w-full max-w-[1400px] items-center justify-between gap-3 px-4 py-3 md:px-8">
         <button
           aria-label="Toggle navigation"
-          className="border border-neutral-300 px-3 py-2 text-xs tracking-[0.2em] md:hidden"
+          className="shrink-0 border border-neutral-300 px-3 py-2 text-[10px] tracking-[0.2em] md:hidden"
           onClick={() => setMobileOpen((prev) => !prev)}
           type="button"
         >
           MENU
         </button>
 
-        <Link href="/" className="font-heading text-xl tracking-[0.2em] text-[#111111]">
+        <Link
+          href="/"
+          className="min-w-0 flex-1 pr-2 font-heading text-sm tracking-[0.16em] text-[#111111] sm:text-base md:flex-none md:pr-0 md:text-xl md:tracking-[0.2em]"
+        >
           FASSION 4 ASIAN
         </Link>
 
-        <nav className="hidden items-center gap-7 text-xs font-medium uppercase tracking-[0.18em] md:flex">
+        <nav className="hidden items-center gap-5 text-xs font-medium uppercase tracking-[0.16em] lg:flex xl:gap-7 xl:tracking-[0.18em]">
           {navCategories.map((item) => {
             const hasMegaMenu = item.label === "Men" || item.label === "Kids";
             const menuKey = item.label.toLowerCase() as "men" | "kids";
@@ -80,24 +83,24 @@ export default function Navbar() {
           })}
         </nav>
 
-        <div className="flex items-center gap-3 text-xs uppercase tracking-[0.15em]">
-          <form onSubmit={submitSearch} className="hidden md:block">
+        <div className="flex shrink-0 items-center gap-2 text-[10px] uppercase tracking-[0.13em] sm:text-xs sm:tracking-[0.15em]">
+          <form onSubmit={submitSearch} className="hidden lg:block">
             <div className="flex h-10 items-center rounded-full border border-neutral-300 bg-white px-3 transition focus-within:border-[#111111]">
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search products"
-                className="w-40 bg-transparent text-[11px] normal-case tracking-normal text-[#111111] outline-none placeholder:text-neutral-400 lg:w-52"
+                className="w-36 bg-transparent text-[11px] normal-case tracking-normal text-[#111111] outline-none placeholder:text-neutral-400 xl:w-48"
               />
               <button type="submit" className="ml-2 text-neutral-500 hover:text-[#111111]" aria-label="Search products">
                 Go
               </button>
             </div>
           </form>
-          <Link href="/admin" className="hidden md:inline hover:text-[#111111]">
+          <Link href="/admin" className="hidden lg:inline hover:text-[#111111]">
             Admin
           </Link>
-          <Link href="/cart" className="hover:text-[#111111]">
+          <Link href="/cart" className="whitespace-nowrap hover:text-[#111111]">
             Cart ({cartCount})
           </Link>
         </div>

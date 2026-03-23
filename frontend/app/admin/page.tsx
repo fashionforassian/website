@@ -751,11 +751,11 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-4 py-10 md:px-8 md:py-14">
+    <main className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:py-10 md:px-8 md:py-14">
       <header className="mb-8 flex flex-col gap-4 border-b border-neutral-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Admin Console</p>
-          <h1 className="mt-3 font-heading text-5xl text-[#111111]">Product Control Center</h1>
+          <h1 className="mt-3 font-heading text-3xl text-[#111111] sm:text-4xl xl:text-5xl">Product Control Center</h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-[#222222]">
             Every product now has its own card with image, stock, pricing, and quick actions. Click a
             card or the edit button to open the full popup editor.
@@ -772,14 +772,14 @@ export default function AdminPage() {
 
       <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         {stats.map((stat) => (
-          <article key={stat.label} className="border border-neutral-200 bg-white p-5">
+          <article key={stat.label} className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5">
             <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">{stat.label}</p>
-            <p className="mt-3 font-heading text-4xl text-[#111111]">{stat.value}</p>
+            <p className="mt-3 font-heading text-3xl text-[#111111] sm:text-4xl">{stat.value}</p>
           </article>
         ))}
       </section>
 
-      <section className="mb-8 border border-neutral-200 p-5">
+      <section className="mb-8 rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Catalog Grid</p>
@@ -795,11 +795,11 @@ export default function AdminPage() {
       </section>
 
       {loading ? (
-        <div className="border border-neutral-200 p-8 text-sm text-[#222222]">Loading products...</div>
+        <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-sm text-[#222222]">Loading products...</div>
       ) : (
-        <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <section className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
           {filteredProducts.map((product) => (
-            <article key={product.id} className="overflow-hidden border border-neutral-200 bg-white">
+            <article key={product.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
               <button type="button" onClick={() => openEditModal(product)} className="block w-full text-left">
                 <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
                   {product.image ? (
@@ -824,7 +824,7 @@ export default function AdminPage() {
                   </div>
                 </div>
               </button>
-              <div className="space-y-4 p-5">
+              <div className="space-y-4 p-4 sm:p-5">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">
                     {product.category} • {product.sku}
@@ -880,7 +880,7 @@ export default function AdminPage() {
       )}
 
       <section className="mt-10 grid gap-8 xl:grid-cols-[1.35fr,0.65fr]">
-        <div className="border border-neutral-200 bg-white p-6">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-6">
           <div className="mb-5 flex flex-col gap-4 border-b border-neutral-200 pb-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Orders</p>
@@ -892,7 +892,7 @@ export default function AdminPage() {
             <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">{filteredOrders.length} visible</span>
           </div>
 
-          <div className="mb-5 grid gap-3 md:grid-cols-[1fr,220px]">
+          <div className="mb-5 grid gap-3 lg:grid-cols-[1fr,220px]">
             <input
               value={orderQuery}
               onChange={(event) => setOrderQuery(event.target.value)}
@@ -918,7 +918,7 @@ export default function AdminPage() {
               <p className="text-sm text-[#222222]">No matching orders.</p>
             ) : (
               filteredOrders.map((order) => (
-                <article key={order.id} className="border border-neutral-200 p-4">
+                <article key={order.id} className="rounded-2xl border border-neutral-200 p-4">
                   <div className="flex flex-col gap-4 border-b border-neutral-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">{order.id}</p>
@@ -953,10 +953,10 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 grid gap-4 lg:grid-cols-[1fr,1fr]">
+                  <div className="mt-4 grid gap-4 2xl:grid-cols-[1fr,1fr]">
                     <label className="space-y-2">
                       <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Tracking Number</span>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col gap-2 sm:flex-row">
                         <input
                           defaultValue={order.trackingNumber ?? ""}
                           placeholder="Add tracking number"
@@ -1030,7 +1030,7 @@ export default function AdminPage() {
                     <p className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Order Items</p>
                     <div className="mt-3 space-y-3">
                       {order.items.map((item, index) => (
-                        <div key={`${order.id}-${item.productId}-${index}`} className="flex items-center justify-between gap-4 border border-neutral-200 px-3 py-3">
+                        <div key={`${order.id}-${item.productId}-${index}`} className="flex flex-col gap-3 border border-neutral-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
                           <div>
                             <p className="text-sm uppercase tracking-[0.12em] text-[#111111]">{item.name}</p>
                             <p className="mt-1 text-xs uppercase tracking-[0.12em] text-neutral-500">
@@ -1048,8 +1048,8 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="border border-neutral-200 bg-white p-6">
-          <div className="mb-5 flex items-center justify-between gap-3 border-b border-neutral-200 pb-4">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-6">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 pb-4">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Subscribers</p>
               <h2 className="mt-2 font-heading text-3xl text-[#111111]">Newsletter Signups</h2>
@@ -1061,7 +1061,7 @@ export default function AdminPage() {
               <p className="text-sm text-[#222222]">No subscribers yet.</p>
             ) : (
               subscribers.slice(0, 10).map((subscriber) => (
-                <article key={subscriber.id} className="border border-neutral-200 p-4">
+                <article key={subscriber.id} className="rounded-2xl border border-neutral-200 p-4">
                   <p className="text-sm text-[#111111]">{subscriber.email}</p>
                   <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-neutral-500">{subscriber.source}</p>
                 </article>

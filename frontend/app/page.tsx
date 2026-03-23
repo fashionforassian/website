@@ -106,14 +106,14 @@ export default async function Home() {
       <FeaturedCollections collections={featuredCollectionsData} />
       <DeferredClothShowcase />
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-20 md:px-8">
-        <div className="grid items-center gap-12 md:grid-cols-2">
+      <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:py-16 md:px-8 md:py-20">
+        <div className="grid items-center gap-8 md:gap-12 lg:grid-cols-2">
           <Reveal yOffset={40}>
             <div>
               <p className="mb-2 text-xs uppercase tracking-[0.3em] text-neutral-500">
                 Our Commitment
               </p>
-              <h2 className="font-playfair text-4xl font-light text-black md:text-5xl">
+              <h2 className="font-playfair text-3xl font-light text-black sm:text-4xl md:text-5xl">
                 Sustainable Fashion
               </h2>
               <p className="mt-6 text-neutral-600">
@@ -123,7 +123,7 @@ export default async function Home() {
               </p>
               <Link
                 href="/about"
-                className="mt-8 inline-block rounded-lg border border-neutral-900 px-8 py-3 font-medium text-neutral-900 transition-all hover:bg-neutral-900 hover:text-white"
+                className="mt-8 inline-block rounded-lg border border-neutral-900 px-6 py-3 text-sm font-medium text-neutral-900 transition-all hover:bg-neutral-900 hover:text-white sm:px-8"
               >
                 Learn Our Story
               </Link>
@@ -131,7 +131,7 @@ export default async function Home() {
           </Reveal>
 
           <Reveal yOffset={40} delay={0.1}>
-            <div className="relative h-96 overflow-hidden rounded-lg bg-neutral-200">
+            <div className="relative h-72 overflow-hidden rounded-lg bg-neutral-200 sm:h-80 md:h-96">
               <Image
                 src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80"
                 alt="Sustainability"
@@ -152,28 +152,28 @@ export default async function Home() {
         ]}
       />
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-20 md:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:py-16 md:px-8 md:py-20">
         <Reveal yOffset={40}>
-          <div className="overflow-hidden rounded-[32px] border border-neutral-200 bg-[linear-gradient(135deg,#0f172a_0%,#111827_45%,#1f2937_100%)] px-8 py-10 text-white md:px-12 md:py-14">
-            <div className="grid gap-10 lg:grid-cols-[1.1fr,0.9fr]">
+          <div className="overflow-hidden rounded-[24px] border border-neutral-200 bg-[linear-gradient(135deg,#0f172a_0%,#111827_45%,#1f2937_100%)] px-5 py-8 text-white sm:px-8 md:rounded-[32px] md:px-12 md:py-14">
+            <div className="grid gap-8 md:gap-10 lg:grid-cols-[1.1fr,0.9fr]">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-white/60">Catalog Access</p>
-                <h2 className="mt-4 font-playfair text-4xl font-light md:text-5xl">View All Products</h2>
+                <h2 className="mt-4 font-playfair text-3xl font-light sm:text-4xl md:text-5xl">View All Products</h2>
                 <p className="mt-5 max-w-2xl text-sm leading-7 text-white/75">
                   Browse the full active catalog across men, kids, accessories, footwear, new arrivals,
                   and sale edits. Every product block is now synced with the admin inventory and pricing
                   system.
                 </p>
-                <div className="mt-8 flex flex-wrap gap-3">
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Link
                     href="/products"
-                    className="rounded-full bg-white px-6 py-3 text-xs uppercase tracking-[0.2em] text-[#111111] transition hover:bg-neutral-200"
+                    className="rounded-full bg-white px-6 py-3 text-center text-xs uppercase tracking-[0.2em] text-[#111111] transition hover:bg-neutral-200"
                   >
                     Open Catalog
                   </Link>
                   <Link
                     href="/sale"
-                    className="rounded-full border border-white/25 px-6 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white hover:bg-white/10"
+                    className="rounded-full border border-white/25 px-6 py-3 text-center text-xs uppercase tracking-[0.2em] text-white transition hover:border-white hover:bg-white/10"
                   >
                     Sale Edit
                   </Link>
@@ -203,15 +203,15 @@ export default async function Home() {
 
       <AutoScrollNewArrivals products={newArrivals} />
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-20 md:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:py-16 md:px-8 md:py-20">
         <Reveal yOffset={40}>
           <div className="mb-12">
             <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">Trending Now</p>
-            <h2 className="font-playfair text-4xl font-light text-black md:text-5xl">Best Sellers</h2>
+            <h2 className="font-playfair text-3xl font-light text-black sm:text-4xl md:text-5xl">Best Sellers</h2>
           </div>
         </Reveal>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {bestSellers.map((product, idx) => (
             <Reveal key={product.id} yOffset={40} delay={idx * 0.05}>
               <Link href={`/product/${product.slug}`}>
@@ -233,15 +233,15 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-20 md:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:py-16 md:px-8 md:py-20">
         <Reveal yOffset={40}>
           <div className="mb-12 text-center">
             <p className="text-xs uppercase tracking-[0.3em] text-accent">Limited Time</p>
-            <h2 className="font-playfair text-4xl font-light text-black md:text-5xl">Seasonal Sale</h2>
+            <h2 className="font-playfair text-3xl font-light text-black sm:text-4xl md:text-5xl">Seasonal Sale</h2>
           </div>
         </Reveal>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {saleProducts.map((product, idx) => (
             <Reveal key={product.id} yOffset={40} delay={idx * 0.05}>
               <Link href={`/product/${product.slug}`}>
@@ -276,7 +276,7 @@ export default async function Home() {
           <div className="mt-12 text-center">
             <Link
               href="/sale"
-              className="inline-block rounded-lg border border-neutral-900 px-12 py-3 font-medium text-neutral-900 transition-all hover:bg-neutral-900 hover:text-white"
+              className="inline-block rounded-lg border border-neutral-900 px-8 py-3 text-sm font-medium text-neutral-900 transition-all hover:bg-neutral-900 hover:text-white sm:px-12"
             >
               View All Sale Items
             </Link>
@@ -284,9 +284,9 @@ export default async function Home() {
         </Reveal>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-20 md:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:py-16 md:px-8 md:py-20">
         <Reveal yOffset={40}>
-          <h2 className="font-playfair text-4xl font-light text-black md:text-5xl">
+          <h2 className="font-playfair text-3xl font-light text-black sm:text-4xl md:text-5xl">
             Shop by
             <br />
             <RotatingWords
@@ -297,7 +297,7 @@ export default async function Home() {
           </h2>
         </Reveal>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
           {[
             {
               name: "Men",
@@ -340,12 +340,12 @@ export default async function Home() {
                         alt={category.name}
                         width={400}
                         height={400}
-                        className="h-80 w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="h-64 w-full object-cover transition-transform duration-700 group-hover:scale-110 sm:h-72 lg:h-80"
                       />
                     </div>
                   </ScrollAnimation>
                   <div className="absolute inset-0 flex items-end justify-start p-6">
-                    <h3 className="font-playfair text-3xl font-light text-white transition-all duration-300 group-hover:text-neutral-200">
+                    <h3 className="font-playfair text-2xl font-light text-white transition-all duration-300 group-hover:text-neutral-200 sm:text-3xl">
                       {category.name}
                     </h3>
                   </div>
@@ -356,10 +356,10 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-20 md:px-8">
-        <div className="rounded-2xl bg-neutral-900 px-8 py-16 text-center md:px-12 md:py-24">
+      <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:py-16 md:px-8 md:py-20">
+        <div className="rounded-2xl bg-neutral-900 px-5 py-12 text-center sm:px-8 md:px-12 md:py-24">
           <Reveal yOffset={40}>
-            <h2 className="font-playfair text-4xl font-light text-white md:text-5xl">Stay Updated</h2>
+            <h2 className="font-playfair text-3xl font-light text-white sm:text-4xl md:text-5xl">Stay Updated</h2>
           </Reveal>
           <Reveal yOffset={40} delay={0.1}>
             <p className="mx-auto mt-4 max-w-lg text-neutral-300">

@@ -119,7 +119,7 @@ export default function AdminStructuredFields({
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {SIZE_PRESETS.map((size) => {
             const isSelected = selectedSizeSet.has(size);
 
@@ -223,8 +223,8 @@ export default function AdminStructuredFields({
           </span>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-          <div className="relative flex-1">
+        <div className="mt-4">
+          <div className="relative">
             <select
               value={colorPickerValue}
               onChange={(event) => handleColorSelect(event.target.value)}
@@ -311,7 +311,7 @@ export default function AdminStructuredFields({
                 />
               </div>
 
-              <div className="mt-4 grid gap-4 lg:grid-cols-[200px,1fr]">
+              <div className="mt-4 grid gap-4 xl:grid-cols-[200px,1fr]">
                 <div>
                   <div className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
                     {variant.image ? (
@@ -352,7 +352,7 @@ export default function AdminStructuredFields({
                 </div>
 
                 <div>
-                  <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                     <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Color Gallery</p>
                     <label className="cursor-pointer rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]">
                       {uploading ? "Uploading..." : "Add Images"}
@@ -368,55 +368,61 @@ export default function AdminStructuredFields({
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {variant.images.map((image, imageIndex) => (
-                      <div
-                        key={`${variant.id}-${image}-${imageIndex}`}
-                        className="rounded-xl border border-neutral-200 p-2"
-                        draggable
-                        onDragStart={(event) =>
-                          event.dataTransfer.setData("text/color-gallery-index", `${variant.id}:${imageIndex}`)
-                        }
-                        onDragOver={(event) => event.preventDefault()}
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          const payload = event.dataTransfer.getData("text/color-gallery-index");
-                          const [fromColorId, fromIndexValue] = payload.split(":");
-                          const fromIndex = Number(fromIndexValue);
-                          if (fromColorId === variant.id && !Number.isNaN(fromIndex)) {
-                            reorderColorGalleryImages(variant.id, fromIndex, imageIndex);
-                          }
-                        }}
-                      >
-                        <div className="overflow-hidden rounded-lg border border-neutral-200">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={image} alt={`${variant.name} ${imageIndex + 1}`} className="aspect-[4/5] w-full object-cover" />
-                        </div>
-                        <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-neutral-400">
-                          Drag to reorder
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          <label className="cursor-pointer rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]">
-                            Replace
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              disabled={uploading}
-                              onChange={(event) =>
-                                void handleColorGalleryReplace(variant.id, imageIndex, event.target.files)
-                              }
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => removeColorGalleryImage(variant.id, imageIndex)}
-                            className="rounded-full border border-red-200 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-red-600 hover:border-red-500"
-                          >
-                            Remove
-                          </button>
-                        </div>
+                    {variant.images.length === 0 ? (
+                      <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-neutral-300 px-4 text-center text-sm text-neutral-500">
+                        No images for this color yet.
                       </div>
-                    ))}
+                    ) : (
+                      variant.images.map((image, imageIndex) => (
+                        <div
+                          key={`${variant.id}-${image}-${imageIndex}`}
+                          className="rounded-xl border border-neutral-200 p-2"
+                          draggable
+                          onDragStart={(event) =>
+                            event.dataTransfer.setData("text/color-gallery-index", `${variant.id}:${imageIndex}`)
+                          }
+                          onDragOver={(event) => event.preventDefault()}
+                          onDrop={(event) => {
+                            event.preventDefault();
+                            const payload = event.dataTransfer.getData("text/color-gallery-index");
+                            const [fromColorId, fromIndexValue] = payload.split(":");
+                            const fromIndex = Number(fromIndexValue);
+                            if (fromColorId === variant.id && !Number.isNaN(fromIndex)) {
+                              reorderColorGalleryImages(variant.id, fromIndex, imageIndex);
+                            }
+                          }}
+                        >
+                          <div className="overflow-hidden rounded-lg border border-neutral-200">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={image} alt={`${variant.name} ${imageIndex + 1}`} className="aspect-[4/5] w-full object-cover" />
+                          </div>
+                          <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-neutral-400">
+                            Drag to reorder
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <label className="cursor-pointer rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]">
+                              Replace
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={uploading}
+                                onChange={(event) =>
+                                  void handleColorGalleryReplace(variant.id, imageIndex, event.target.files)
+                                }
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => removeColorGalleryImage(variant.id, imageIndex)}
+                              className="rounded-full border border-red-200 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-red-600 hover:border-red-500"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
