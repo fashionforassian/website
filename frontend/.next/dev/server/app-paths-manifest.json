@@ -1,5 +1,6 @@
 {
   "/admin/page": "app/admin/page.js",
+  "/api/admin/orders/[id]/route": "app/api/admin/orders/[id]/route.js",
   "/api/admin/orders/route": "app/api/admin/orders/route.js",
   "/api/admin/products/[id]/route": "app/api/admin/products/[id]/route.js",
   "/api/admin/products/route": "app/api/admin/products/route.js",

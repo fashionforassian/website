@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { unstable_noStore as noStore } from "next/cache";
-import { type Order, type OrderItem, type Subscriber } from "@/lib/backoffice";
+import { type Order, type OrderItem, type OrderStatus, type Subscriber } from "@/lib/backoffice";
 
 type CreateSubscriberInput = {
   email: string;
@@ -12,6 +12,12 @@ type CreateOrderInput = {
   customerName: string;
   customerEmail: string;
   items: OrderItem[];
+};
+
+type UpdateOrderInput = {
+  status?: OrderStatus;
+  trackingNumber?: string | null;
+  adminNotes?: string;
 };
 
 const subscribersPath = path.join(process.cwd(), "data", "subscribers.json");
@@ -65,7 +71,14 @@ export async function createSubscriber(input: CreateSubscriberInput): Promise<Su
 export async function getOrders(): Promise<Order[]> {
   noStore();
   const orders = await readJsonFile<Order[]>(ordersPath, []);
-  return orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return orders
+    .map((order) => ({
+      ...order,
+      trackingNumber: order.trackingNumber ?? null,
+      adminNotes: order.adminNotes ?? "",
+      status: order.status ?? "placed",
+    }))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
@@ -95,6 +108,8 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     customerEmail,
     createdAt: new Date().toISOString(),
     status: "placed",
+    trackingNumber: null,
+    adminNotes: "",
     items,
     subtotal,
     shipping,
@@ -104,4 +119,30 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
   const orders = await readJsonFile<Order[]>(ordersPath, []);
   await writeJsonFile(ordersPath, [order, ...orders]);
   return order;
+}
+
+export async function updateOrder(id: string, input: UpdateOrderInput): Promise<Order> {
+  const orders = await getOrders();
+  const index = orders.findIndex((order) => order.id === id);
+
+  if (index === -1) {
+    throw new Error("Order not found.");
+  }
+
+  const current = orders[index];
+  const nextOrder: Order = {
+    ...current,
+    status: input.status ?? current.status,
+    trackingNumber:
+      input.trackingNumber === undefined
+        ? current.trackingNumber
+        : input.trackingNumber?.trim() || null,
+    adminNotes:
+      input.adminNotes === undefined ? current.adminNotes : input.adminNotes.trim(),
+  };
+
+  const nextOrders = [...orders];
+  nextOrders[index] = nextOrder;
+  await writeJsonFile(ordersPath, nextOrders);
+  return nextOrder;
 }

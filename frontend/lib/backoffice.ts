@@ -16,7 +16,7 @@ export type OrderItem = {
   quantity: number;
 };
 
-export type OrderStatus = "placed" | "fulfilled" | "cancelled";
+export type OrderStatus = "placed" | "processing" | "shipped" | "fulfilled" | "cancelled";
 
 export type Order = {
   id: string;
@@ -24,6 +24,8 @@ export type Order = {
   customerEmail: string;
   createdAt: string;
   status: OrderStatus;
+  trackingNumber: string | null;
+  adminNotes: string;
   items: OrderItem[];
   subtotal: number;
   shipping: number;

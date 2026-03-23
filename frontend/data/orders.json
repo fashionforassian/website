@@ -4,7 +4,7 @@
     "customerName": "divyanshu",
     "customerEmail": "divyanshusinghchouhan@verbolabs.com",
     "createdAt": "2026-03-20T11:00:57.845Z",
-    "status": "placed",
+    "status": "cancelled",
     "items": [
       {
         "lineId": "p-1774000972801-S-Navy",
@@ -20,14 +20,16 @@
     ],
     "subtotal": 700,
     "shipping": 0,
-    "total": 700
+    "total": 700,
+    "trackingNumber": null,
+    "adminNotes": ""
   },
   {
     "id": "ord_1773998012919",
     "customerName": "sfvkksddsvfd",
     "customerEmail": "kvnfdkjnvkjdn@gmail.com",
     "createdAt": "2026-03-20T09:13:32.919Z",
-    "status": "placed",
+    "status": "cancelled",
     "items": [
       {
         "lineId": "p-1773997807781-xxxs xxxs xxxs xxxs xxxs xxxs xxxs-white black green bargandi",
@@ -43,6 +45,8 @@
     ],
     "subtotal": 100000,
     "shipping": 0,
-    "total": 100000
+    "total": 100000,
+    "trackingNumber": null,
+    "adminNotes": ""
   }
 ]

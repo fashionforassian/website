@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminProductEditorModal from "@/components/AdminProductEditorModal";
 import { type EditableColorVariant, type ProductFormState } from "@/lib/admin-product-form";
-import { type Order, type Subscriber } from "@/lib/backoffice";
+import { type Order, type OrderStatus, type Subscriber } from "@/lib/backoffice";
 import { categoryMeta, formatPrice, type Category, type Product } from "@/lib/data";
 import { getColorSwatchValue } from "@/lib/product-options";
 
 const categoryOptions = Object.keys(categoryMeta) as Category[];
 type UploadPreset = "cover" | "gallery";
 type CropFocus = "center" | "north" | "south" | "east" | "west";
+const orderStatusOptions: OrderStatus[] = ["placed", "processing", "shipped", "fulfilled", "cancelled"];
 
 function createEmptyForm(): ProductFormState {
   return {
@@ -117,6 +118,9 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [orderQuery, setOrderQuery] = useState("");
+  const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | OrderStatus>("all");
+  const [savingOrderId, setSavingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     void loadData();
@@ -170,6 +174,23 @@ export default function AdminPage() {
     ],
     [orders.length, products, subscribers.length],
   );
+
+  const filteredOrders = useMemo(() => {
+    const normalizedQuery = orderQuery.trim().toLowerCase();
+
+    return orders.filter((order) => {
+      if (orderStatusFilter !== "all" && order.status !== orderStatusFilter) {
+        return false;
+      }
+
+      if (!normalizedQuery) {
+        return true;
+      }
+
+      const haystack = `${order.id} ${order.customerName} ${order.customerEmail} ${order.trackingNumber ?? ""} ${order.adminNotes}`.toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+  }, [orderQuery, orderStatusFilter, orders]);
 
   function openCreateModal() {
     setSelectedId(null);
@@ -698,6 +719,37 @@ export default function AdminPage() {
     await loadData();
   }
 
+  async function updateOrderRecord(
+    orderId: string,
+    patch: { status?: OrderStatus; trackingNumber?: string | null; adminNotes?: string },
+  ) {
+    setSavingOrderId(orderId);
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+
+      const data = (await response.json()) as Order | { message?: string };
+
+      if (!response.ok) {
+        throw new Error("message" in data ? data.message : "Unable to update order.");
+      }
+
+      setOrders((current) =>
+        current.map((order) => (order.id === orderId ? (data as Order) : order)),
+      );
+      setMessage(`Order ${orderId} updated.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to update order.");
+    } finally {
+      setSavingOrderId(null);
+    }
+  }
+
   return (
     <main className="mx-auto w-full max-w-[1600px] px-4 py-10 md:px-8 md:py-14">
       <header className="mb-8 flex flex-col gap-4 border-b border-neutral-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
@@ -827,25 +879,169 @@ export default function AdminPage() {
         </section>
       )}
 
-      <section className="mt-10 grid gap-8 xl:grid-cols-2">
+      <section className="mt-10 grid gap-8 xl:grid-cols-[1.35fr,0.65fr]">
         <div className="border border-neutral-200 bg-white p-6">
-          <div className="mb-5 flex items-center justify-between gap-3 border-b border-neutral-200 pb-4">
+          <div className="mb-5 flex flex-col gap-4 border-b border-neutral-200 pb-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Orders</p>
-              <h2 className="mt-2 font-heading text-3xl text-[#111111]">Recent Checkout Activity</h2>
+              <h2 className="mt-2 font-heading text-3xl text-[#111111]">Order Management</h2>
+              <p className="mt-2 text-sm text-[#222222]">
+                Search, update status, attach tracking, and keep internal notes for each order.
+              </p>
             </div>
-            <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">{orders.length} total</span>
+            <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">{filteredOrders.length} visible</span>
           </div>
+
+          <div className="mb-5 grid gap-3 md:grid-cols-[1fr,220px]">
+            <input
+              value={orderQuery}
+              onChange={(event) => setOrderQuery(event.target.value)}
+              placeholder="Search by order ID, customer, email, tracking..."
+              className="h-11 border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]"
+            />
+            <select
+              value={orderStatusFilter}
+              onChange={(event) => setOrderStatusFilter(event.target.value as "all" | OrderStatus)}
+              className="h-11 border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]"
+            >
+              <option value="all">All statuses</option>
+              {orderStatusOptions.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="space-y-4">
-            {orders.length === 0 ? (
-              <p className="text-sm text-[#222222]">No orders yet.</p>
+            {filteredOrders.length === 0 ? (
+              <p className="text-sm text-[#222222]">No matching orders.</p>
             ) : (
-              orders.slice(0, 8).map((order) => (
+              filteredOrders.map((order) => (
                 <article key={order.id} className="border border-neutral-200 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">{order.id}</p>
-                  <h3 className="mt-1 text-sm uppercase tracking-[0.12em] text-[#111111]">{order.customerName}</h3>
-                  <p className="mt-1 text-sm text-[#222222]">{order.customerEmail}</p>
-                  <p className="mt-3 text-sm text-[#222222]">{order.items.length} items • {formatPrice(order.total)}</p>
+                  <div className="flex flex-col gap-4 border-b border-neutral-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">{order.id}</p>
+                      <h3 className="mt-1 text-sm uppercase tracking-[0.12em] text-[#111111]">{order.customerName}</h3>
+                      <p className="mt-1 text-sm text-[#222222]">{order.customerEmail}</p>
+                      <p className="mt-2 text-sm text-[#222222]">
+                        {order.items.length} items • {formatPrice(order.total)}
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="space-y-2">
+                        <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Status</span>
+                        <select
+                          value={order.status}
+                          onChange={(event) =>
+                            void updateOrderRecord(order.id, { status: event.target.value as OrderStatus })
+                          }
+                          disabled={savingOrderId === order.id}
+                          className="h-10 min-w-[180px] border border-neutral-300 px-3 text-sm outline-none focus:border-[#111111]"
+                        >
+                          {orderStatusOptions.map((status) => (
+                            <option key={status} value={status}>
+                              {status}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="space-y-2">
+                        <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Placed</span>
+                        <p className="text-sm text-[#222222]">{new Date(order.createdAt).toLocaleString("en-IN")}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 lg:grid-cols-[1fr,1fr]">
+                    <label className="space-y-2">
+                      <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Tracking Number</span>
+                      <div className="flex gap-2">
+                        <input
+                          defaultValue={order.trackingNumber ?? ""}
+                          placeholder="Add tracking number"
+                          className="h-10 flex-1 border border-neutral-300 px-3 text-sm outline-none focus:border-[#111111]"
+                          onBlur={(event) =>
+                            void updateOrderRecord(order.id, { trackingNumber: event.target.value || null })
+                          }
+                        />
+                        <button
+                          type="button"
+                          disabled={savingOrderId === order.id}
+                          onClick={() =>
+                            void updateOrderRecord(order.id, {
+                              status: order.status === "placed" ? "processing" : order.status,
+                            })
+                          }
+                          className="border border-neutral-300 px-4 text-[11px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111] disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </label>
+
+                    <div className="space-y-2">
+                      <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Quick Actions</span>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void updateOrderRecord(order.id, { status: "processing" })}
+                          className="border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]"
+                        >
+                          Mark Processing
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void updateOrderRecord(order.id, { status: "shipped" })}
+                          className="border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]"
+                        >
+                          Mark Shipped
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void updateOrderRecord(order.id, { status: "fulfilled" })}
+                          className="border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]"
+                        >
+                          Mark Fulfilled
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void updateOrderRecord(order.id, { status: "cancelled" })}
+                          className="border border-red-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-red-600 hover:border-red-600"
+                        >
+                          Cancel Order
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <label className="mt-4 block space-y-2">
+                    <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Internal Notes</span>
+                    <textarea
+                      defaultValue={order.adminNotes}
+                      rows={3}
+                      placeholder="Add packing notes, payment notes, or customer follow-up details"
+                      className="w-full border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-[#111111]"
+                      onBlur={(event) => void updateOrderRecord(order.id, { adminNotes: event.target.value })}
+                    />
+                  </label>
+
+                  <div className="mt-4 border-t border-neutral-200 pt-4">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Order Items</p>
+                    <div className="mt-3 space-y-3">
+                      {order.items.map((item, index) => (
+                        <div key={`${order.id}-${item.productId}-${index}`} className="flex items-center justify-between gap-4 border border-neutral-200 px-3 py-3">
+                          <div>
+                            <p className="text-sm uppercase tracking-[0.12em] text-[#111111]">{item.name}</p>
+                            <p className="mt-1 text-xs uppercase tracking-[0.12em] text-neutral-500">
+                              Qty {item.quantity} • Size {item.size ?? "-"} • Color {item.color ?? "-"}
+                            </p>
+                          </div>
+                          <p className="text-sm text-[#222222]">{formatPrice(item.price * item.quantity)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </article>
               ))
             )}
