@@ -40,7 +40,10 @@ export default function Navbar() {
   }
 
   return (
-    <header
+    <motion.header
+      initial={{ opacity: 0, y: -16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
       className="sticky top-0 z-50 border-b border-neutral-200 bg-white/95 backdrop-blur"
       onMouseLeave={() => setActiveMenu(null)}
     >
@@ -74,7 +77,7 @@ export default function Navbar() {
               >
                 <Link
                   href={item.href}
-                  className="text-[#222222] transition-colors hover:text-[#111111]"
+                  className="relative text-[#222222] transition-colors hover:text-[#111111]"
                 >
                   {item.label}
                 </Link>
@@ -185,6 +188,6 @@ export default function Navbar() {
           </ul>
         </nav>
       ) : null}
-    </header>
+    </motion.header>
   );
 }

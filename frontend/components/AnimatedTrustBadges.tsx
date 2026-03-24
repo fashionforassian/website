@@ -1,4 +1,7 @@
+"use client";
+
 import { type ReactNode } from "react";
+import { motion } from "framer-motion";
 
 type Badge = {
   id: string;
@@ -62,11 +65,16 @@ const badges: Badge[] = [
 export default function AnimatedTrustBadges() {
   return (
     <section className="border-t border-neutral-200 bg-white">
-      <div className="mx-auto grid w-full max-w-7xl gap-3 px-4 py-10 md:grid-cols-2 lg:grid-cols-4 md:px-8">
-        {badges.map((badge) => (
-          <article
+      <div className="mx-auto grid w-full max-w-7xl gap-3 px-4 py-10 md:grid-cols-2 md:px-8 lg:grid-cols-4">
+        {badges.map((badge, index) => (
+          <motion.article
             key={badge.id}
-            className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-[#fbfaf8] px-4 py-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.42, delay: index * 0.06, ease: "easeOut" }}
+            whileHover={{ y: -4 }}
+            className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-[#fbfaf8] px-4 py-4 shadow-[0_12px_30px_rgba(17,17,17,0.04)]"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-900">
               {badge.icon}
@@ -75,7 +83,7 @@ export default function AnimatedTrustBadges() {
               <h3 className="text-sm font-semibold text-neutral-900">{badge.label}</h3>
               <p className="mt-1 text-xs uppercase tracking-[0.12em] text-neutral-500">{badge.desc}</p>
             </div>
-          </article>
+          </motion.article>
         ))}
       </div>
     </section>

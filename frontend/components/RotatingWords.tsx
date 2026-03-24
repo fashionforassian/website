@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface RotatingWordsProps {
   words: string[];
@@ -10,27 +11,37 @@ interface RotatingWordsProps {
 
 export default function RotatingWords({
   words,
-  duration = 3,
+  duration = 6,
   className = "",
 }: RotatingWordsProps) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (words.length <= 1) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setIndex((current) => (current + 1) % words.length);
+    }, Math.max(duration * 1000, 1400));
+
+    return () => window.clearInterval(intervalId);
+  }, [duration, words.length]);
+
   return (
-    <div className={`relative inline-block h-[1em] overflow-hidden ${className}`}>
-      {words.map((word, index) => (
-        <motion.div
-          key={index}
-          className="absolute whitespace-nowrap"
-          initial={{ y: "100%" }}
-          animate={{ y: "-100%" }}
-          transition={{
-            delay: (index * duration) / words.length,
-            duration,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+    <span className={`relative inline-flex min-w-[7ch] overflow-hidden align-baseline ${className}`}>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={words[index] ?? ""}
+          initial={{ opacity: 0, y: "55%" }}
+          animate={{ opacity: 1, y: "0%" }}
+          exit={{ opacity: 0, y: "-55%" }}
+          transition={{ duration: 0.32, ease: "easeOut" }}
+          className="inline-block"
         >
-          {word}
-        </motion.div>
-      ))}
-    </div>
+          {words[index] ?? ""}
+        </motion.span>
+      </AnimatePresence>
+    </span>
   );
 }

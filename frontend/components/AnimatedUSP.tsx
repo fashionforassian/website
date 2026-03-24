@@ -1,4 +1,7 @@
+"use client";
+
 import { type ReactNode } from "react";
+import { motion } from "framer-motion";
 
 type USPItem = {
   text: string;
@@ -57,10 +60,15 @@ export default function AnimatedUSP() {
   return (
     <section className="border-b border-neutral-200 bg-[#fbfaf8]">
       <div className="mx-auto grid w-full max-w-7xl gap-3 px-4 py-10 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
-        {uspItems.map((item) => (
-          <article
+        {uspItems.map((item, index) => (
+          <motion.article
             key={item.text}
-            className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-4"
+            initial={{ opacity: 0, y: 22 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.45, delay: index * 0.06, ease: "easeOut" }}
+            whileHover={{ y: -4 }}
+            className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-4 shadow-[0_12px_30px_rgba(17,17,17,0.04)]"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 text-neutral-900">
               {item.icon}
@@ -69,7 +77,7 @@ export default function AnimatedUSP() {
               <h3 className="text-sm font-semibold text-neutral-900">{item.text}</h3>
               <p className="mt-1 text-xs uppercase tracking-[0.12em] text-neutral-500">{item.desc}</p>
             </div>
-          </article>
+          </motion.article>
         ))}
       </div>
     </section>

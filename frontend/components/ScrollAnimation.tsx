@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform, useMotionTemplate } from "framer-motion";
-import { useRef } from "react";
+import { motion } from "framer-motion";
 
 interface ScrollAnimationProps {
   children: React.ReactNode;
@@ -12,77 +11,17 @@ interface ScrollAnimationProps {
 
 export default function ScrollAnimation({
   children,
-  type = "rotate",
-  intensity = 10,
   className = "",
 }: ScrollAnimationProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 80%", "end 20%"],
-  });
-
-  let transform;
-
-  switch (type) {
-    case "rotate":
-      transform = useTransform(scrollYProgress, [0, 1], [0, intensity]);
-      return (
-        <motion.div
-          ref={ref}
-          style={{ rotate: transform, willChange: "transform" }}
-          className={className}
-        >
-          {children}
-        </motion.div>
-      );
-
-    case "scale":
-      const scale = useTransform(scrollYProgress, [0, 1], [0.8, 1.2]);
-      return (
-        <motion.div
-          ref={ref}
-          style={{ scale, willChange: "transform" }}
-          className={className}
-        >
-          {children}
-        </motion.div>
-      );
-
-    case "skew":
-      const skewValue = useTransform(
-        scrollYProgress,
-        [0, 1],
-        [-intensity, intensity]
-      );
-      return (
-        <motion.div
-          ref={ref}
-          style={{ skewY: skewValue, willChange: "transform" }}
-          className={className}
-        >
-          {children}
-        </motion.div>
-      );
-
-    case "blur":
-      const blurValue = useTransform(
-        scrollYProgress,
-        [0, 1],
-        [intensity, 0]
-      );
-      const filter = useMotionTemplate`blur(${blurValue}px)`;
-      return (
-        <motion.div
-          ref={ref}
-          style={{ filter, willChange: "filter" }}
-          className={className}
-        >
-          {children}
-        </motion.div>
-      );
-
-    default:
-      return <div className={className}>{children}</div>;
-  }
+  return (
+    <motion.div
+      initial={{ opacity: 0.92, scale: 0.985 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
 }

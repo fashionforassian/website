@@ -13,30 +13,34 @@ export default function SectionHeading({
   subtitle,
   align = "left",
 }: SectionHeadingProps) {
-  const alignClass = align === "center" ? "text-center" : "text-left";
+  const isCenter = align === "center";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-      className={`mb-12 ${alignClass}`}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.55, ease: "easeOut" }}
+      className={`mb-12 ${isCenter ? "text-center" : "text-left"}`}
     >
-      <h2 className="font-playfair text-4xl font-light text-black md:text-5xl">
-        {title}
-      </h2>
-      {subtitle && (
-        <p className="mt-3 text-sm uppercase tracking-[0.2em] text-neutral-500">
+      {subtitle ? (
+        <p className="mb-4 text-[11px] uppercase tracking-[0.34em] text-neutral-500">
           {subtitle}
         </p>
-      )}
+      ) : null}
+
+      <h2 className="font-playfair text-4xl font-light leading-tight text-black md:text-5xl">
+        {title}
+      </h2>
+
       <motion.div
-        className="mx-auto mt-6 h-px w-12 bg-black"
-        initial={{ width: 0 }}
-        whileInView={{ width: align === "center" ? 48 : 48 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8, delay: 0.2 }}
+        initial={{ width: 0, opacity: 0 }}
+        whileInView={{ width: 88, opacity: 1 }}
+        viewport={{ once: true, margin: "-60px" }}
+        transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
+        className={`mt-6 h-px bg-[linear-gradient(90deg,#111111_0%,rgba(17,17,17,0.12)_100%)] ${
+          isCenter ? "mx-auto" : ""
+        }`}
       />
     </motion.div>
   );

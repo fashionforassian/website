@@ -8,6 +8,7 @@ interface RevealProps {
   delay?: number;
   duration?: number;
   yOffset?: number;
+  className?: string;
 }
 
 export default function Reveal({
@@ -15,6 +16,7 @@ export default function Reveal({
   delay = 0,
   duration = 0.6,
   yOffset = 60,
+  className = "",
 }: RevealProps) {
   return (
     <motion.div
@@ -27,6 +29,7 @@ export default function Reveal({
         ease: "easeOut",
       }}
       style={{ willChange: "transform, opacity" }}
+      className={className}
     >
       {children}
     </motion.div>

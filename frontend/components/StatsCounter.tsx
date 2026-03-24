@@ -1,7 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
 
 interface StatItem {
   value: number;
@@ -15,56 +15,43 @@ interface StatsCounterProps {
 
 function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
   const [displayValue, setDisplayValue] = useState(0);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!isInView) {
+      return;
+    }
 
-    let animationFrameId: number;
-    let currentValue = 0;
-    const increment = value / 60; // Animate over 60 frames (~1 second)
-    const startTime = Date.now();
-    const duration = 1200; // 1.2 seconds for smooth animation
+    let frameId = 0;
+    const start = performance.now();
+    const duration = 900;
 
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      // Easing function for smooth animation
-      const easeOutQuad = 1 - Math.pow(1 - progress, 2);
-      currentValue = easeOutQuad * value;
-
-      setDisplayValue(Math.floor(currentValue));
+    const update = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(value * eased));
 
       if (progress < 1) {
-        animationFrameId = requestAnimationFrame(animate);
-      } else {
-        setDisplayValue(value);
+        frameId = requestAnimationFrame(update);
       }
     };
 
-    animationFrameId = requestAnimationFrame(animate);
-
-    return () => cancelAnimationFrame(animationFrameId);
+    frameId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(frameId);
   }, [isInView, value]);
 
   return (
     <span ref={ref}>
-      {displayValue.toLocaleString()}{suffix}
+      {displayValue.toLocaleString()}
+      {suffix}
     </span>
   );
 }
 
 export default function StatsCounter({ stats }: StatsCounterProps) {
-  const containerRef = useRef(null);
-  const isInView = useInView(containerRef, { once: true });
-
   return (
-    <section
-      ref={containerRef}
-      className="relative overflow-hidden bg-gradient-to-b from-[#161616] via-[#121212] to-[#161616] py-24"
-    >
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#161616] via-[#121212] to-[#161616] py-16 md:py-20">
       <div
         className="absolute inset-0 opacity-[0.08]"
         style={{
@@ -79,54 +66,20 @@ export default function StatsCounter({ stats }: StatsCounterProps) {
         <div className="grid w-full grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
           {stats.map((stat, index) => (
             <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{
-                duration: 0.6,
-                delay: index * 0.1,
-                ease: "easeOut",
-              }}
-              className="relative space-y-3 text-center md:text-left"
+              key={stat.label}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.45, delay: index * 0.06, ease: "easeOut" }}
+              className="relative rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-center backdrop-blur-sm md:text-left"
             >
-              <motion.div
-                className="absolute inset-0 rounded-lg border border-white/10 bg-white/[0.04] backdrop-blur-sm"
-                initial={{ opacity: 0 }}
-                animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-                transition={{ duration: 0.45, delay: index * 0.08 }}
-              />
-
-              <div className="relative">
-                <motion.div
-                  className="font-playfair text-4xl md:text-5xl font-light text-white"
-                  initial={{ scale: 0.8 }}
-                  animate={isInView ? { scale: 1 } : { scale: 0.8 }}
-                  transition={{ duration: 0.45, delay: index * 0.08 }}
-                >
-                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                </motion.div>
-
-                <motion.p
-                  className="text-xs md:text-sm uppercase tracking-[0.2em] text-neutral-400 mt-2 md:mt-3"
-                  initial={{ opacity: 0 }}
-                  animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-                  transition={{ duration: 0.45, delay: index * 0.12 }}
-                >
-                  {stat.label}
-                </motion.p>
-
-                <motion.div
-                  className="h-0.5 bg-gradient-to-r from-white/0 via-white/50 to-white/0 mt-4"
-                  initial={{ scaleX: 0 }}
-                  animate={isInView ? { scaleX: 1 } : { scaleX: 0 }}
-                  transition={{
-                    duration: 0.6,
-                    delay: index * 0.08 + 0.15,
-                    ease: "easeInOut",
-                  }}
-                  style={{ transformOrigin: "left" }}
-                />
+              <div className="font-playfair text-4xl font-light text-white md:text-5xl">
+                <AnimatedCounter value={stat.value} suffix={stat.suffix} />
               </div>
+              <p className="mt-3 text-xs uppercase tracking-[0.2em] text-neutral-400 md:text-sm">
+                {stat.label}
+              </p>
+              <div className="mt-4 h-0.5 bg-gradient-to-r from-white/0 via-white/50 to-white/0" />
             </motion.div>
           ))}
         </div>

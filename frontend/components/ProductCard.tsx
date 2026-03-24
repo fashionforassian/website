@@ -12,17 +12,18 @@ export default function ProductCard({ product }: ProductCardProps) {
   const isOnSale = Boolean(product.isSale && product.compareAtPrice);
 
   return (
-    <article className="group">
-      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+    <article className="group rounded-[24px] border border-transparent p-2 transition-all duration-300 hover:-translate-y-1 hover:border-neutral-200 hover:bg-white hover:shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-neutral-100">
         <Image
           src={product.image}
           alt={product.name}
           fill
-          className="object-cover transition duration-500 group-hover:scale-[1.02]"
+          className="object-cover transition duration-700 group-hover:scale-[1.05]"
         />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_44%,rgba(0,0,0,0.18)_100%)] opacity-0 transition duration-500 group-hover:opacity-100" />
         <Link
           href={`/product/${product.slug}`}
-          className="absolute bottom-3 left-3 border border-[#111111] bg-white px-3 py-2 text-[10px] uppercase tracking-[0.15em] text-[#111111] opacity-100 transition group-hover:opacity-100 sm:px-4 sm:text-[11px] sm:opacity-0"
+          className="absolute bottom-3 left-3 translate-y-0 border border-[#111111] bg-white px-3 py-2 text-[10px] uppercase tracking-[0.15em] text-[#111111] opacity-100 transition duration-300 group-hover:-translate-y-0.5 group-hover:opacity-100 sm:px-4 sm:text-[11px] sm:translate-y-2 sm:opacity-0"
         >
           Quick View
         </Link>
@@ -44,7 +45,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           ) : null}
         </div>
       </div>
-      <div className="mt-3 space-y-1.5">
+      <div className="mt-4 space-y-1.5 px-1 pb-1">
         <h3 className="line-clamp-2 text-sm uppercase tracking-[0.12em] text-[#111111]">{product.name}</h3>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <p className="text-[#222222]">{formatPrice(product.price)}</p>
