@@ -1,16 +1,3 @@
 {
-  "/admin/page": "app/admin/page.js",
-  "/api/admin/orders/route": "app/api/admin/orders/route.js",
-  "/api/admin/products/[id]/route": "app/api/admin/products/[id]/route.js",
-  "/api/admin/products/route": "app/api/admin/products/route.js",
-  "/api/admin/subscribers/route": "app/api/admin/subscribers/route.js",
-  "/api/orders/route": "app/api/orders/route.js",
-  "/api/uploads/route": "app/api/uploads/route.js",
-  "/cart/page": "app/cart/page.js",
-  "/kids/page": "app/kids/page.js",
-  "/men/page": "app/men/page.js",
-  "/page": "app/page.js",
-  "/product/[slug]/page": "app/product/[slug]/page.js",
-  "/products/page": "app/products/page.js",
-  "/sale/page": "app/sale/page.js"
+  "/page": "app/page.js"
 }
