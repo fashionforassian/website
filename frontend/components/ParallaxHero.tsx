@@ -89,7 +89,7 @@ export default function ParallaxHero({
               </p>
             ) : null}
 
-            <h1 className="mt-5 max-w-3xl font-playfair text-5xl font-light leading-[0.96] text-[#111111] sm:text-6xl lg:text-[5.4rem]">
+            <h1 className="mt-5 max-w-3xl font-playfair text-4xl font-light leading-[0.96] text-[#111111] sm:text-6xl lg:text-[5.4rem]">
               {title}
             </h1>
 
@@ -165,7 +165,7 @@ export default function ParallaxHero({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.1, ease: "easeOut" }}
-            className="relative min-h-[540px] sm:min-h-[620px] lg:min-h-[680px]"
+            className="relative min-h-[480px] sm:min-h-[620px] lg:min-h-[680px]"
           >
             <div className="absolute inset-[7%_2%_7%_10%] overflow-hidden rounded-[40px] border border-white/55 bg-white/28 shadow-[0_30px_100px_rgba(17,17,17,0.08)] backdrop-blur-md">
               <Image
@@ -183,7 +183,7 @@ export default function ParallaxHero({
               <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute right-0 top-0 w-[84%] max-w-[480px]"
+                className="relative mx-auto w-full max-w-[480px] sm:absolute sm:right-0 sm:top-0 sm:w-[84%]"
               >
                 <Link href={spotlight.href} className="group block">
                   <div className="overflow-hidden rounded-[38px] border border-white/70 bg-white/82 p-3 shadow-[0_28px_90px_rgba(17,17,17,0.12)] backdrop-blur-md">
@@ -235,7 +235,7 @@ export default function ParallaxHero({
               <motion.div
                 animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute bottom-6 left-0 w-[58%] max-w-[310px]"
+                className="relative mx-auto mt-4 hidden w-full max-w-[310px] sm:absolute sm:bottom-6 sm:left-0 sm:mt-0 sm:block sm:w-[58%]"
               >
                 <Link href={secondarySpotlight.href} className="group block">
                   <div className="overflow-hidden rounded-[32px] border border-white/70 bg-white/82 p-3 shadow-[0_22px_70px_rgba(17,17,17,0.1)] backdrop-blur-md">

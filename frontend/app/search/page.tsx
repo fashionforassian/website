@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { buildBackendUrl } from "@/lib/backend-api";
 import { formatPrice, type Product } from "@/lib/data";
 
 const quickTerms = ["Linen", "Tailoring", "Sneakers", "Accessories", "New"];
@@ -22,7 +23,7 @@ export default function SearchPage() {
 
     async function loadProducts() {
       try {
-        const response = await fetch("/api/products");
+        const response = await fetch(buildBackendUrl("/api/products"));
         const data = (await response.json()) as Product[];
 
         if (active) {
@@ -61,7 +62,7 @@ export default function SearchPage() {
       <header className="mb-8 grid gap-6 border border-neutral-200 p-6 md:grid-cols-[1.2fr,1fr] md:p-8">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Product Finder</p>
-          <h1 className="mt-3 font-heading text-5xl text-[#111111]">Search</h1>
+          <h1 className="mt-3 font-heading text-4xl text-[#111111] sm:text-5xl">Search</h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[#222222]">
             Explore all pieces by name, category, or style notes.
           </p>

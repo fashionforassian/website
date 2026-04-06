@@ -6,8 +6,9 @@ import RotatingWords from "@/components/RotatingWords";
 import AnimatedUSP from "@/components/AnimatedUSP";
 import NewsletterForm from "@/components/NewsletterForm";
 import ParallaxHero from "@/components/ParallaxHero";
-import { getVisibleProducts } from "@/lib/catalog";
-import { formatPrice } from "@/lib/data";
+import HomeAuthCta from "@/components/HomeAuthCta";
+import { fetchBackendJson } from "@/lib/backend-api";
+import { formatPrice, type Product } from "@/lib/data";
 
 const FeaturedCollections = dynamic(() => import("@/components/FeaturedCollections"));
 const EditorialShowcase = dynamic(() => import("@/components/EditorialShowcase"));
@@ -16,7 +17,22 @@ const AutoScrollNewArrivals = dynamic(() => import("@/components/AutoScrollNewAr
 const AnimatedTrustBadges = dynamic(() => import("@/components/AnimatedTrustBadges"));
 
 export default async function Home() {
-  const products = await getVisibleProducts();
+  let products: Product[] = [];
+  let productFeedUnavailable = false;
+
+  try {
+    const payload = await fetchBackendJson<Product[] | { items?: Product[] }>("/api/products");
+
+    if (Array.isArray(payload)) {
+      products = payload;
+    } else if (Array.isArray(payload?.items)) {
+      products = payload.items;
+    } else {
+      productFeedUnavailable = true;
+    }
+  } catch {
+    productFeedUnavailable = true;
+  }
 
   const newArrivals = products
     .filter((product) => product.isNew)
@@ -145,6 +161,14 @@ export default async function Home() {
 
   return (
     <main className="relative w-full bg-white">
+      {productFeedUnavailable ? (
+        <section className="mx-auto w-full max-w-7xl px-4 pt-6 md:px-8">
+          <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Live catalog data is temporarily unavailable. Showing editorial sections while the backend reconnects.
+          </div>
+        </section>
+      ) : null}
+
       <ParallaxHero
         title="Sharper fits for everyday movement."
         subtitle="New Season Edit"
@@ -189,6 +213,8 @@ export default async function Home() {
             : undefined
         }
       />
+
+      <HomeAuthCta />
 
       <AnimatedUSP />
       <FeaturedCollections collections={featuredCollectionsData} />
@@ -249,8 +275,8 @@ export default async function Home() {
           </Reveal>
 
           <Reveal yOffset={34} delay={0.08}>
-            <div className="relative min-h-[520px]">
-              <div className="absolute right-0 top-0 w-[86%] overflow-hidden rounded-[34px] border border-neutral-200 bg-white p-3 shadow-[0_24px_80px_rgba(17,17,17,0.08)]">
+            <div className="grid gap-4 sm:relative sm:min-h-[520px] sm:gap-0">
+              <div className="relative w-full overflow-hidden rounded-[34px] border border-neutral-200 bg-white p-3 shadow-[0_24px_80px_rgba(17,17,17,0.08)] sm:absolute sm:right-0 sm:top-0 sm:w-[86%]">
                 <div className="relative h-[360px] overflow-hidden rounded-[28px] bg-neutral-100 sm:h-[430px]">
                   <Image
                     src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80"
@@ -262,7 +288,7 @@ export default async function Home() {
                 </div>
               </div>
 
-              <div className="absolute bottom-0 left-0 w-[58%] rounded-[30px] border border-neutral-200 bg-[#111111] p-6 text-white shadow-[0_22px_70px_rgba(17,17,17,0.14)]">
+              <div className="relative w-full rounded-[30px] border border-neutral-200 bg-[#111111] p-6 text-white shadow-[0_22px_70px_rgba(17,17,17,0.14)] sm:absolute sm:bottom-0 sm:left-0 sm:w-[58%]">
                 <p className="text-[10px] uppercase tracking-[0.24em] text-white/55">Studio Note</p>
                 <p className="mt-4 font-playfair text-3xl font-light">Built to move with the page.</p>
                 <p className="mt-4 text-sm leading-7 text-white/72">

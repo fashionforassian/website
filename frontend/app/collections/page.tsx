@@ -25,7 +25,7 @@ export default function CollectionsPage() {
     <main>
       <section className="mx-auto w-full max-w-[1200px] px-4 py-12 text-center md:px-8 md:py-16">
           <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Fassion 4 Asian</p>
-        <h1 className="mt-3 font-heading text-5xl text-[#111111] md:text-6xl">Collections</h1>
+        <h1 className="mt-3 font-heading text-4xl text-[#111111] sm:text-5xl md:text-6xl">Collections</h1>
         <p className="mx-auto mt-5 max-w-3xl text-sm leading-7 text-[#222222]">
           A curated sequence of seasonal narratives where each collection is built around material, movement, and city context.
         </p>
@@ -40,7 +40,7 @@ export default function CollectionsPage() {
             <div className={`flex items-center p-3 ${index % 2 === 1 ? "md:order-1" : ""}`}>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Collection 0{index + 1}</p>
-                <h2 className="mt-3 font-heading text-4xl text-[#111111]">{collection.title}</h2>
+                <h2 className="mt-3 font-heading text-3xl text-[#111111] sm:text-4xl">{collection.title}</h2>
                 <p className="mt-4 text-sm leading-7 text-[#222222]">{collection.subtitle}</p>
                 <Link
                   href="/products"
@@ -55,7 +55,7 @@ export default function CollectionsPage() {
       </section>
 
       <section className="mx-auto w-full max-w-[1400px] px-4 pb-14 md:px-8 md:pb-20">
-        <h2 className="mb-6 font-heading text-3xl text-[#111111]">Capsule Edits</h2>
+        <h2 className="mb-6 font-heading text-2xl text-[#111111] sm:text-3xl">Capsule Edits</h2>
         <div className="grid gap-6 md:grid-cols-3">
           {capsules.map((capsule) => (
             <article key={capsule.title} className="group border border-neutral-200 p-4">

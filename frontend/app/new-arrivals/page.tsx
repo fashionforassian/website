@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getVisibleProducts } from "@/lib/catalog";
-import { formatPrice } from "@/lib/data";
+import { fetchBackendJson } from "@/lib/backend-api";
+import { formatPrice, type Product } from "@/lib/data";
 
 const drops = [
   { week: "Drop 01", date: "March 03", focus: "Soft tailoring and modern linen" },
@@ -10,19 +10,19 @@ const drops = [
 ];
 
 export default async function NewArrivalsPage() {
-  const products = await getVisibleProducts();
+  const products = await fetchBackendJson<Product[]>("/api/products");
   const arrivals = products.filter((item) => item.isNew);
 
   return (
     <main className="mx-auto w-full max-w-[1400px] px-4 py-10 md:px-8 md:py-14">
       <header className="mb-10 border-b border-neutral-200 pb-6">
         <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Latest Pieces</p>
-        <h1 className="mt-3 font-heading text-5xl text-[#111111]">New Arrivals</h1>
+        <h1 className="mt-3 font-heading text-4xl text-[#111111] sm:text-5xl">New Arrivals</h1>
       </header>
 
       <section className="grid gap-8 lg:grid-cols-[320px,1fr]">
         <aside className="border border-neutral-200 p-6">
-          <h2 className="font-heading text-3xl text-[#111111]">Drop Calendar</h2>
+          <h2 className="font-heading text-2xl text-[#111111] sm:text-3xl">Drop Calendar</h2>
           <div className="relative mt-6 space-y-6 pl-5 before:absolute before:left-1 before:top-0 before:h-full before:w-px before:bg-neutral-300">
             {drops.map((drop) => (
               <article key={drop.week} className="relative">

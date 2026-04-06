@@ -3,15 +3,6 @@
   "/_not-found/page": "/_not-found",
   "/about/page": "/about",
   "/admin/page": "/admin",
-  "/api/admin/orders/[id]/route": "/api/admin/orders/[id]",
-  "/api/admin/orders/route": "/api/admin/orders",
-  "/api/admin/products/[id]/route": "/api/admin/products/[id]",
-  "/api/admin/products/route": "/api/admin/products",
-  "/api/admin/subscribers/route": "/api/admin/subscribers",
-  "/api/orders/route": "/api/orders",
-  "/api/products/route": "/api/products",
-  "/api/subscribers/route": "/api/subscribers",
-  "/api/uploads/route": "/api/uploads",
   "/cart/page": "/cart",
   "/category/[slug]/page": "/category/[slug]",
   "/collections/page": "/collections",
@@ -24,5 +15,7 @@
   "/product/[slug]/page": "/product/[slug]",
   "/products/page": "/products",
   "/sale/page": "/sale",
-  "/search/page": "/search"
+  "/search/page": "/search",
+  "/sign-in/[[...sign-in]]/page": "/sign-in/[[...sign-in]]",
+  "/sign-up/[[...sign-up]]/page": "/sign-up/[[...sign-up]]"
 }

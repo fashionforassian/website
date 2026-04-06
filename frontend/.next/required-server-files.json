@@ -71,6 +71,16 @@
         {
           "protocol": "https",
           "hostname": "images.pexels.com"
+        },
+        {
+          "protocol": "http",
+          "hostname": "localhost",
+          "port": "4000"
+        },
+        {
+          "protocol": "http",
+          "hostname": "127.0.0.1",
+          "port": "4000"
         }
       ],
       "qualities": [
@@ -109,7 +119,7 @@
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "C:\\Users\\divya\\Desktop\\website\\frontend",
+    "outputFileTracingRoot": "C:\\Users\\aiman\\Desktop\\Projects\\Fashion\\frontend",
     "cacheComponents": false,
     "cacheLife": {
       "default": {
@@ -166,7 +176,7 @@
       "proxyPrefetch": "flexible",
       "optimisticClientCache": true,
       "manualClientBasePath": false,
-      "cpus": 7,
+      "cpus": 15,
       "memoryBasedWorkersCount": false,
       "imgOptConcurrency": null,
       "imgOptTimeoutInSeconds": 7,
@@ -302,11 +312,11 @@
     "bundlePagesRouterDependencies": false,
     "configFileName": "next.config.ts",
     "turbopack": {
-      "root": "C:\\Users\\divya\\Desktop\\website\\frontend"
+      "root": "C:\\Users\\aiman\\Desktop\\Projects\\Fashion\\frontend"
     },
     "distDirRoot": ".next"
   },
-  "appDir": "C:\\Users\\divya\\Desktop\\website\\frontend",
+  "appDir": "C:\\Users\\aiman\\Desktop\\Projects\\Fashion\\frontend",
   "relativeAppDir": "",
   "files": [
     ".next\\routes-manifest.json",

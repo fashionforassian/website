@@ -51,31 +51,27 @@ function buildLineId(input: AddItemInput): string {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [hydrated, setHydrated] = useState(false);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") {
+      return [];
+    }
 
-  useEffect(() => {
     const stored = window.localStorage.getItem(CART_STORAGE_KEY);
 
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as CartItem[];
-        setItems(parsed);
-      } catch {
-        setItems([]);
-      }
+    if (!stored) {
+      return [];
     }
 
-    setHydrated(true);
-  }, []);
+    try {
+      return JSON.parse(stored) as CartItem[];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
-    if (!hydrated) {
-      return;
-    }
-
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-  }, [items, hydrated]);
+  }, [items]);
 
   const value = useMemo<CartContextValue>(() => {
     const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);

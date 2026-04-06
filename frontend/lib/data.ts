@@ -1,4 +1,4 @@
-export type Category = "men" | "women" | "accessories" | "footwear" | "kids";
+export type Category = string;
 
 export type ProductStatus = "active" | "draft" | "archived";
 
@@ -18,6 +18,9 @@ export type Product = {
   price: number;
   compareAtPrice: number | null;
   category: Category;
+  categoryPathSlugs?: string[];
+  categoryPathLabels?: string[];
+  subcategoryPath?: string;
   colors: string[];
   sizes: string[];
   image: string;
@@ -369,7 +372,7 @@ export const editorialCampaign = {
     "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80",
 };
 
-export const categoryMeta: Record<Category, { title: string; banner: string }> = {
+export const categoryMeta: Record<string, { title: string; banner: string }> = {
   men: {
     title: "Menswear",
     banner:

@@ -82,12 +82,12 @@ export default function EditorialShowcase({ items }: EditorialShowcaseProps) {
           </div>
         </motion.div>
 
-        <div className="relative min-h-[540px]">
+        <div className="grid gap-4 sm:relative sm:min-h-[540px] sm:gap-0">
           {featuredItems.map((item, index) => {
             const layouts = [
-              "left-0 top-10 w-[58%] md:w-[54%]",
-              "right-0 top-0 w-[54%] md:w-[48%]",
-              "left-[18%] bottom-0 w-[56%] md:left-[22%] md:w-[50%]",
+              "sm:left-0 sm:top-10 sm:w-[58%] md:w-[54%]",
+              "sm:right-0 sm:top-0 sm:w-[54%] md:w-[48%]",
+              "sm:bottom-0 sm:left-[18%] sm:w-[56%] md:left-[22%] md:w-[50%]",
             ];
 
             return (
@@ -98,7 +98,7 @@ export default function EditorialShowcase({ items }: EditorialShowcaseProps) {
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.65, delay: index * 0.12, ease: "easeOut" }}
                 animate={{ y: [0, index % 2 === 0 ? -8 : 8, 0] }}
-                className={`absolute ${layouts[index] ?? layouts[0]}`}
+                className={`relative w-full sm:absolute ${layouts[index] ?? layouts[0]}`}
                 style={{ zIndex: 10 + index }}
               >
                 <Link href={item.href} className="group block">

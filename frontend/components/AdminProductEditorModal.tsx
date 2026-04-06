@@ -10,9 +10,11 @@ type Props = {
   selectedId: string | null;
   form: ProductFormState;
   message: string;
+  messageTone: "neutral" | "success" | "error";
   saving: boolean;
   uploading: boolean;
   categoryOptions: Category[];
+  categoryPathOptions: Array<{ key: string; slugs: string[]; label: string }>;
   onClose: () => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   updateForm: <K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => void;
@@ -42,9 +44,11 @@ export default function AdminProductEditorModal({
   selectedId,
   form,
   message,
+  messageTone,
   saving,
   uploading,
   categoryOptions,
+  categoryPathOptions,
   onClose,
   onSubmit,
   updateForm,
@@ -69,6 +73,7 @@ export default function AdminProductEditorModal({
   reorderColorGalleryImages,
 }: Props) {
   const [coverCropFocus, setCoverCropFocus] = useState<"center" | "north" | "south" | "east" | "west">("center");
+  const selectedPathKey = form.categoryPathSlugs.length ? form.categoryPathSlugs.join("/") : "";
 
   useEffect(() => {
     if (!isOpen) {
@@ -86,6 +91,21 @@ export default function AdminProductEditorModal({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
   if (!isOpen) {
     return null;
   }
@@ -93,11 +113,15 @@ export default function AdminProductEditorModal({
   return (
     <div
       className="fixed inset-0 z-[80] overflow-y-auto bg-black/70 px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8"
+      onClick={onClose}
       onWheelCapture={(event) => event.stopPropagation()}
       onTouchMoveCapture={(event) => event.stopPropagation()}
     >
       <div className="mx-auto flex min-h-full w-full max-w-6xl items-start justify-center">
-        <div className="flex max-h-[min(92vh,1100px)] w-full flex-col overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-2xl">
+        <div
+          className="flex max-h-[min(92vh,1100px)] w-full flex-col overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-2xl"
+          onClick={(event) => event.stopPropagation()}
+        >
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 px-4 py-4 sm:px-6 sm:py-5">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Product Editor</p>
@@ -121,7 +145,20 @@ export default function AdminProductEditorModal({
           className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-6"
         >
           <div className="space-y-8">
-          {message ? <p className="text-sm text-[#222222]">{message}</p> : null}
+          {message ? (
+            <p
+              aria-live="polite"
+              className={`rounded-xl border px-4 py-3 text-sm ${
+                messageTone === "error"
+                  ? "border-red-300 bg-red-50 text-red-700"
+                  : messageTone === "success"
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                    : "border-neutral-200 bg-white text-[#222222]"
+              }`}
+            >
+              {message}
+            </p>
+          ) : null}
 
           <div className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr] xl:gap-8">
             <div className="space-y-6">
@@ -136,6 +173,34 @@ export default function AdminProductEditorModal({
                     {categoryOptions.map((category) => (
                       <option key={category} value={category}>{category}</option>
                     ))}
+                  </select>
+                </label>
+                <label className="space-y-2 md:col-span-2">
+                  <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Subcategory Path</span>
+                  <select
+                    value={selectedPathKey}
+                    onChange={(event) => {
+                      const nextKey = event.target.value;
+                      if (!nextKey) {
+                        updateForm("categoryPathSlugs", []);
+                        return;
+                      }
+                      const found = categoryPathOptions.find((option) => option.key === nextKey);
+                      if (found) {
+                        updateForm("category", found.slugs[0] as Category);
+                        updateForm("categoryPathSlugs", found.slugs);
+                      }
+                    }}
+                    className="h-11 w-full border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]"
+                  >
+                    <option value="">No subcategory path (main category only)</option>
+                    {categoryPathOptions
+                      .filter((option) => option.slugs[0] === form.category)
+                      .map((option) => (
+                        <option key={option.key} value={option.key}>
+                          {option.label}
+                        </option>
+                      ))}
                   </select>
                 </label>
                 <label className="space-y-2">

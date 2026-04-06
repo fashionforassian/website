@@ -14,6 +14,7 @@ export type ProductFormState = {
   slug: string;
   sku: string;
   category: Category;
+  categoryPathSlugs: string[];
   price: string;
   compareAtPrice: string;
   inventory: string;

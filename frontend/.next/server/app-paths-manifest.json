@@ -3,15 +3,6 @@
   "/_not-found/page": "app/_not-found/page.js",
   "/about/page": "app/about/page.js",
   "/admin/page": "app/admin/page.js",
-  "/api/admin/orders/[id]/route": "app/api/admin/orders/[id]/route.js",
-  "/api/admin/orders/route": "app/api/admin/orders/route.js",
-  "/api/admin/products/[id]/route": "app/api/admin/products/[id]/route.js",
-  "/api/admin/products/route": "app/api/admin/products/route.js",
-  "/api/admin/subscribers/route": "app/api/admin/subscribers/route.js",
-  "/api/orders/route": "app/api/orders/route.js",
-  "/api/products/route": "app/api/products/route.js",
-  "/api/subscribers/route": "app/api/subscribers/route.js",
-  "/api/uploads/route": "app/api/uploads/route.js",
   "/cart/page": "app/cart/page.js",
   "/category/[slug]/page": "app/category/[slug]/page.js",
   "/collections/page": "app/collections/page.js",
@@ -24,5 +15,7 @@
   "/product/[slug]/page": "app/product/[slug]/page.js",
   "/products/page": "app/products/page.js",
   "/sale/page": "app/sale/page.js",
-  "/search/page": "app/search/page.js"
+  "/search/page": "app/search/page.js",
+  "/sign-in/[[...sign-in]]/page": "app/sign-in/[[...sign-in]]/page.js",
+  "/sign-up/[[...sign-up]]/page": "app/sign-up/[[...sign-up]]/page.js"
 }

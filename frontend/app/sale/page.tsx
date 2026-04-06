@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getVisibleProducts } from "@/lib/catalog";
-import { formatPrice } from "@/lib/data";
+import { fetchBackendJson } from "@/lib/backend-api";
+import { formatPrice, type Product } from "@/lib/data";
 
 export default async function SalePage() {
-  const products = await getVisibleProducts();
+  const products = await fetchBackendJson<Product[]>("/api/products");
   const saleItems = products
     .filter((item) => item.isSale && item.compareAtPrice)
     .slice(0, 8);
@@ -15,7 +15,7 @@ export default async function SalePage() {
         <div className="grid gap-6 border border-neutral-300 bg-white p-6 md:grid-cols-[1.1fr,1fr] md:p-8">
           <article>
             <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Limited Offer</p>
-            <h1 className="mt-3 font-heading text-5xl text-[#111111]">Seasonal Sale</h1>
+            <h1 className="mt-3 font-heading text-4xl text-[#111111] sm:text-5xl">Seasonal Sale</h1>
             <p className="mt-4 max-w-xl text-sm leading-7 text-[#222222]">
               Selected styles are now reduced for a short period. Offer applies while stock lasts.
             </p>

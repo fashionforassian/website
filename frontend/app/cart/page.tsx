@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { buildBackendUrl } from "@/lib/backend-api";
 import { useCart, type CartItem } from "@/components/providers/CartProvider";
 
 function money(value: number): string {
@@ -25,7 +26,7 @@ export default function CartPage() {
     setMessage("");
 
     try {
-      const response = await fetch("/api/orders", {
+      const response = await fetch(buildBackendUrl("/api/orders"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -57,7 +58,7 @@ export default function CartPage() {
     <main className="mx-auto w-full max-w-[1400px] px-4 py-12 md:px-8 md:py-16">
       <header className="mb-8 border-b border-neutral-200 pb-5">
         <p className="mb-2 text-xs uppercase tracking-[0.2em] text-neutral-500">Shopping Bag</p>
-        <h1 className="font-heading text-4xl text-[#111111]">Cart</h1>
+        <h1 className="font-heading text-3xl text-[#111111] sm:text-4xl">Cart</h1>
       </header>
 
       {items.length === 0 ? (

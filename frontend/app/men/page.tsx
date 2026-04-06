@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getVisibleProducts } from "@/lib/catalog";
-import { formatPrice } from "@/lib/data";
+import { fetchBackendJson } from "@/lib/backend-api";
+import { formatPrice, type Product } from "@/lib/data";
 
 const wardrobeNotes = [
   {
@@ -19,7 +19,7 @@ const wardrobeNotes = [
 ];
 
 export default async function MenPage() {
-  const products = await getVisibleProducts();
+  const products = await fetchBackendJson<Product[]>("/api/products");
   const menProducts = products.filter((item) => item.category === "men");
 
   return (
@@ -28,7 +28,7 @@ export default async function MenPage() {
         <article className="flex items-end bg-[#111111] p-8 text-white md:p-12">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-[#c8b79f]">Menswear</p>
-            <h1 className="mt-4 font-heading text-5xl leading-tight">Built For A Faster City Rhythm</h1>
+            <h1 className="mt-4 font-heading text-4xl leading-tight sm:text-5xl">Built For A Faster City Rhythm</h1>
             <p className="mt-5 max-w-xl text-sm leading-7 text-white/90">
               Precision-cut layers and contemporary staples engineered for movement, climate, and sharp proportion.
             </p>
@@ -40,7 +40,7 @@ export default async function MenPage() {
             </Link>
           </div>
         </article>
-        <div className="relative h-[420px] md:h-[520px]">
+        <div className="relative h-[360px] sm:h-[420px] md:h-[520px]">
           <Image
             src="https://images.pexels.com/photos/5378700/pexels-photo-5378700.jpeg?auto=compress&cs=tinysrgb&w=1600"
             alt="Menswear campaign"
@@ -64,7 +64,7 @@ export default async function MenPage() {
 
       <section className="mx-auto w-full max-w-[1400px] px-4 pb-14 md:px-8 md:pb-20">
         <div className="mb-6 flex items-end justify-between border-b border-neutral-200 pb-4">
-          <h2 className="font-heading text-3xl text-[#111111]">Menswear Picks</h2>
+          <h2 className="font-heading text-2xl text-[#111111] sm:text-3xl">Menswear Picks</h2>
           <Link href="/products" className="text-xs uppercase tracking-[0.18em] text-neutral-500 hover:text-[#111111]">
             View All
           </Link>

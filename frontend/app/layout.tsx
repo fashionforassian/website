@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Inter, Playfair_Display } from "next/font/google";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -29,13 +30,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} antialiased`}>
-        <SmoothScrollProvider>
-          <CartProvider>
-            <Navbar />
-            {children}
-            <Footer />
-          </CartProvider>
-        </SmoothScrollProvider>
+        <ClerkProvider
+          signInFallbackRedirectUrl="/"
+          signInForceRedirectUrl="/"
+          signUpFallbackRedirectUrl="/"
+          signUpForceRedirectUrl="/"
+        >
+          <SmoothScrollProvider>
+            <CartProvider>
+              <Navbar />
+              {children}
+              <Footer />
+            </CartProvider>
+          </SmoothScrollProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

@@ -3,7 +3,7 @@ export default function ContactPage() {
     <main className="mx-auto w-full max-w-[1200px] px-4 py-14 md:px-8 md:py-20">
       <header className="mb-10">
         <p className="mb-3 text-xs uppercase tracking-[0.2em] text-neutral-500">Contact</p>
-        <h1 className="font-heading text-4xl text-[#111111] md:text-5xl">Get In Touch</h1>
+        <h1 className="font-heading text-3xl text-[#111111] sm:text-4xl md:text-5xl">Get In Touch</h1>
       </header>
 
       <section className="grid gap-8 md:grid-cols-2">
@@ -82,7 +82,7 @@ export default function ContactPage() {
       </section>
 
       <section className="mt-10 border border-neutral-200">
-        <div className="flex h-72 items-center justify-center bg-neutral-100 text-sm uppercase tracking-[0.12em] text-neutral-500">
+        <div className="flex h-60 items-center justify-center bg-neutral-100 text-sm uppercase tracking-[0.12em] text-neutral-500 sm:h-72">
           Minimal Map Placeholder
         </div>
       </section>

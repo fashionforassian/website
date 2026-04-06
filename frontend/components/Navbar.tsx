@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ClerkLoaded, UserButton, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useCart } from "@/components/providers/CartProvider";
+import { buildBackendUrl } from "@/lib/backend-api";
 import { navCategories } from "@/lib/data";
 
 const megaMenu = {
@@ -31,7 +33,81 @@ export default function Navbar() {
   const [activeMenu, setActiveMenu] = useState<"men" | "kids" | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { cartCount } = useCart();
+  const { isLoaded, isSignedIn, userId, getToken } = useAuth();
+  const [canAccessAdmin, setCanAccessAdmin] = useState(false);
+  const [authNotice, setAuthNotice] = useState("");
+  const previousSignedInRef = useRef(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    if (!isSignedIn) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function syncAndCheckAccess() {
+      try {
+        const token = await getToken();
+        if (!token) {
+          if (!cancelled) {
+            setCanAccessAdmin(false);
+          }
+          return;
+        }
+
+        const sessionResponse = await fetch(buildBackendUrl("/api/auth/session"), {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (sessionResponse.ok) {
+          const sessionData = (await sessionResponse.json()) as { created?: boolean };
+          const hasJustSignedIn = !previousSignedInRef.current;
+          if (!cancelled && hasJustSignedIn) {
+            setAuthNotice(sessionData.created ? "Welcome! Your account has been created." : "You are now logged in.");
+            setTimeout(() => {
+              setAuthNotice("");
+            }, 4000);
+          }
+        }
+
+        const response = await fetch(buildBackendUrl("/api/admin/me"), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!cancelled) {
+          setCanAccessAdmin(response.ok);
+        }
+      } catch {
+        if (!cancelled) {
+          setCanAccessAdmin(false);
+        }
+      }
+    }
+
+    void syncAndCheckAccess();
+    previousSignedInRef.current = true;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken, isLoaded, isSignedIn, userId]);
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      previousSignedInRef.current = false;
+    }
+  }, [isSignedIn]);
 
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -47,7 +123,7 @@ export default function Navbar() {
       className="sticky top-0 z-50 border-b border-neutral-200 bg-white/95 backdrop-blur"
       onMouseLeave={() => setActiveMenu(null)}
     >
-      <div className="mx-auto flex min-h-16 w-full max-w-[1400px] items-center justify-between gap-3 px-4 py-3 md:px-8">
+      <div className="mx-auto flex min-h-16 w-full max-w-[1400px] items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4 md:px-8">
         <button
           aria-label="Toggle navigation"
           className="shrink-0 border border-neutral-300 px-3 py-2 text-[10px] tracking-[0.2em] md:hidden"
@@ -59,7 +135,7 @@ export default function Navbar() {
 
         <Link
           href="/"
-          className="min-w-0 flex-1 pr-2 font-heading text-sm tracking-[0.16em] text-[#111111] sm:text-base md:flex-none md:pr-0 md:text-xl md:tracking-[0.2em]"
+          className="min-w-0 flex-1 truncate pr-2 font-heading text-[11px] tracking-[0.12em] text-[#111111] sm:text-sm sm:tracking-[0.16em] md:flex-none md:pr-0 md:text-xl md:tracking-[0.2em]"
         >
           FASSION 4 ASIAN
         </Link>
@@ -86,7 +162,23 @@ export default function Navbar() {
           })}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2 text-[10px] uppercase tracking-[0.13em] sm:text-xs sm:tracking-[0.15em]">
+        <div className="flex shrink-0 items-center gap-2 text-[10px] uppercase tracking-[0.11em] sm:text-xs sm:tracking-[0.15em]">
+          <ClerkLoaded>
+            {!isSignedIn ? (
+              <div className="hidden items-center gap-3 md:flex">
+                <Link href="/sign-in" className="hover:text-[#111111]">
+                  Sign In
+                </Link>
+                <Link href="/sign-up" className="hover:text-[#111111]">
+                  Sign Up
+                </Link>
+              </div>
+            ) : (
+              <div className="hidden md:inline">
+                <UserButton />
+              </div>
+            )}
+          </ClerkLoaded>
           <form onSubmit={submitSearch} className="hidden lg:block">
             <div className="flex h-10 items-center rounded-full border border-neutral-300 bg-white px-3 transition focus-within:border-[#111111]">
               <input
@@ -100,11 +192,14 @@ export default function Navbar() {
               </button>
             </div>
           </form>
-          <Link href="/admin" className="hidden lg:inline hover:text-[#111111]">
-            Admin
-          </Link>
-          <Link href="/cart" className="whitespace-nowrap hover:text-[#111111]">
-            Cart ({cartCount})
+          {canAccessAdmin ? (
+            <Link href="/admin" className="hidden lg:inline hover:text-[#111111]">
+              Admin
+            </Link>
+          ) : null}
+          <Link href="/cart" className="whitespace-nowrap hover:text-[#111111]" aria-label={`Cart with ${cartCount} items`}>
+            <span className="sm:hidden">Cart</span>
+            <span className="hidden sm:inline">Cart ({cartCount})</span>
           </Link>
         </div>
       </div>
@@ -117,11 +212,11 @@ export default function Navbar() {
           transition={{ duration: 0.25, ease: "easeOut" }}
           className="hidden border-t border-neutral-200 bg-white md:block"
         >
-          <div className="mx-auto max-w-[1400px] px-8 py-6">
+          <div className="mx-auto max-w-[1400px] px-4 py-6 md:px-8">
             <p className="mb-5 text-[11px] uppercase tracking-[0.2em] text-neutral-500 font-semibold">
               {activeMenu === "men" ? "Men's Collection" : "Kids' Collection"}
             </p>
-            <ul className="grid grid-cols-3 gap-y-3 gap-x-8 text-sm">
+            <ul className="grid grid-cols-2 gap-x-5 gap-y-3 text-sm lg:grid-cols-3 lg:gap-x-8">
               {megaMenu[activeMenu].map((item, idx) => (
                 <motion.li 
                   key={item}
@@ -170,11 +265,27 @@ export default function Navbar() {
                 </div>
               </form>
             </li>
-            <li>
-              <Link href="/admin" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
-                Admin
-              </Link>
-            </li>
+            {canAccessAdmin ? (
+              <li>
+                <Link href="/admin" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
+                  Admin
+                </Link>
+              </li>
+            ) : null}
+            {!isSignedIn ? (
+              <>
+                <li>
+                  <Link href="/sign-in" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
+                    Sign In
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/sign-up" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
+                    Sign Up
+                  </Link>
+                </li>
+              </>
+            ) : null}
             <li>
               <Link href="/about" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
                 About
@@ -187,6 +298,12 @@ export default function Navbar() {
             </li>
           </ul>
         </nav>
+      ) : null}
+
+      {isSignedIn && authNotice ? (
+        <div className="border-t border-emerald-200 bg-emerald-50 px-4 py-2 text-center text-xs text-emerald-700">
+          {authNotice}
+        </div>
       ) : null}
     </motion.header>
   );

@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getVisibleProducts } from "@/lib/catalog";
-import { formatPrice } from "@/lib/data";
+import { fetchBackendJson } from "@/lib/backend-api";
+import { formatPrice, type Product } from "@/lib/data";
 
 export default async function KidsPage() {
-  const products = await getVisibleProducts();
+  const products = await fetchBackendJson<Product[]>("/api/products");
   const kidsProducts = products.filter((item) => item.category === "kids");
 
   return (
@@ -12,7 +12,7 @@ export default async function KidsPage() {
       <section className="grid gap-6 md:grid-cols-[1.1fr,1fr]">
         <article className="border border-neutral-200 bg-[#f5efe5] p-8 md:p-12">
           <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Kids</p>
-          <h1 className="mt-4 font-heading text-5xl leading-tight text-[#111111]">
+          <h1 className="mt-4 font-heading text-4xl leading-tight text-[#111111] sm:text-5xl">
             Play-ready pieces with clean silhouettes.
           </h1>
           <p className="mt-5 max-w-xl text-sm leading-7 text-[#222222]">
@@ -26,7 +26,7 @@ export default async function KidsPage() {
             Shop All Products
           </Link>
         </article>
-        <div className="relative h-[420px] md:h-[520px]">
+        <div className="relative h-[360px] sm:h-[420px] md:h-[520px]">
           <Image
             src="https://images.pexels.com/photos/1620760/pexels-photo-1620760.jpeg?auto=compress&cs=tinysrgb&w=1600"
             alt="Kids campaign"
@@ -39,7 +39,7 @@ export default async function KidsPage() {
 
       <section className="mt-12">
         <div className="mb-6 flex items-end justify-between border-b border-neutral-200 pb-4">
-          <h2 className="font-heading text-3xl text-[#111111]">Kids Selection</h2>
+          <h2 className="font-heading text-2xl text-[#111111] sm:text-3xl">Kids Selection</h2>
           <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">{kidsProducts.length} Items</p>
         </div>
         {kidsProducts.length === 0 ? (

@@ -54,7 +54,7 @@ export default function HeroSection() {
               Fassion 4 Asian Spring Summer 2026
           </p>
 
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight">
+          <h1 className="text-4xl font-bold leading-tight sm:text-5xl md:text-7xl">
             Editorial pieces for modern urban dressing
           </h1>
 
@@ -62,7 +62,7 @@ export default function HeroSection() {
             Refined essentials and directional statements designed for movement, climate, and contemporary life.
           </p>
 
-          <div className="mt-8 flex gap-3">
+          <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/products"
               className="border border-white bg-white px-6 py-3 text-xs uppercase tracking-[0.2em] text-black hover:bg-transparent hover:text-white transition"

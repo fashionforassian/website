@@ -2,8 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductGrid from "@/components/ProductGrid";
-import { getVisibleProducts } from "@/lib/catalog";
-import { categoryMeta, type Category } from "@/lib/data";
+import { fetchBackendJson } from "@/lib/backend-api";
+import { categoryMeta, type Category, type Product } from "@/lib/data";
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
@@ -22,7 +22,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
 
   const currentCategory = slug as Category;
-  const products = await getVisibleProducts();
+  const products = await fetchBackendJson<Product[]>("/api/products");
   const categoryProducts = products.filter((item) => item.category === currentCategory);
   const { page } = await searchParams;
   const currentPage = Math.max(1, Number(page ?? 1));
@@ -41,14 +41,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         <Image src={meta.banner} alt={meta.title} fill className="object-cover" />
         <div className="absolute inset-0 bg-black/35" />
         <div className="absolute inset-0 mx-auto flex w-full max-w-[1400px] items-end px-4 pb-10 md:px-8">
-          <h1 className="font-heading text-4xl text-white md:text-5xl">{meta.title}</h1>
+          <h1 className="font-heading text-3xl text-white sm:text-4xl md:text-5xl">{meta.title}</h1>
         </div>
       </section>
 
       <section className="mx-auto mt-10 grid w-full max-w-[1400px] gap-8 px-4 md:px-8 lg:grid-cols-[280px,1fr]">
         <div className="border border-neutral-200 p-5">
           <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Category Insights</p>
-          <h2 className="mt-3 font-heading text-3xl text-[#111111]">{meta.title}</h2>
+          <h2 className="mt-3 font-heading text-2xl text-[#111111] sm:text-3xl">{meta.title}</h2>
           <p className="mt-4 text-sm leading-7 text-[#222222]">
             Browse the latest {meta.title.toLowerCase()} edit. Inventory, pricing, and merchandising
             now update directly from the admin panel.
@@ -62,7 +62,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         <div>
           <ProductGrid products={paginated} />
 
-          <nav className="mt-10 flex items-center gap-2" aria-label="Pagination">
+          <nav className="mt-10 flex flex-wrap items-center gap-2" aria-label="Pagination">
             {Array.from({ length: totalPages }).map((_, index) => {
               const pageNumber = index + 1;
               const isActive = pageNumber === normalizedPage;

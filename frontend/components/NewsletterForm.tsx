@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { buildBackendUrl } from "@/lib/backend-api";
 
 type NewsletterFormProps = {
   source: string;
@@ -25,7 +26,7 @@ export default function NewsletterForm({
     setMessage("");
 
     try {
-      const response = await fetch("/api/subscribers", {
+      const response = await fetch(buildBackendUrl("/api/subscribers"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, source }),
