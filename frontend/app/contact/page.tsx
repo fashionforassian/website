@@ -1,90 +1,59 @@
 export default function ContactPage() {
   return (
-    <main className="mx-auto w-full max-w-[1200px] px-4 py-14 md:px-8 md:py-20">
-      <header className="mb-10">
-        <p className="mb-3 text-xs uppercase tracking-[0.2em] text-neutral-500">Contact</p>
-        <h1 className="font-heading text-3xl text-[#111111] sm:text-4xl md:text-5xl">Get In Touch</h1>
-      </header>
+    <main className="w-full bg-white">
+      <section className="mx-auto w-full max-w-[1200px] px-4 py-24 md:px-8">
+        <header className="mb-16 text-center">
+          <p className="mb-4 text-xs uppercase tracking-[0.3em] text-gray-500">Contact</p>
+          <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-tight text-black">Get In Touch</h1>
+        </header>
 
-      <section className="grid gap-8 md:grid-cols-2">
-        <form className="space-y-4 border border-neutral-200 p-6" action="#">
-          <div>
-            <label htmlFor="name" className="mb-2 block text-xs uppercase tracking-[0.15em] text-neutral-500">
-              Full Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              required
-              className="h-11 w-full border border-neutral-300 px-4 text-sm outline-none transition focus:border-[#111111]"
-            />
-          </div>
-          <div>
-            <label htmlFor="email" className="mb-2 block text-xs uppercase tracking-[0.15em] text-neutral-500">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              className="h-11 w-full border border-neutral-300 px-4 text-sm outline-none transition focus:border-[#111111]"
-            />
-          </div>
-          <div>
-            <label htmlFor="message" className="mb-2 block text-xs uppercase tracking-[0.15em] text-neutral-500">
-              Message
-            </label>
-            <textarea
-              id="message"
-              rows={5}
-              required
-              className="w-full border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-[#111111]"
-            />
-          </div>
-          <button
-            type="submit"
-            className="border border-[#111111] bg-[#111111] px-6 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-[#111111]"
-          >
-            Send Message
-          </button>
-        </form>
+        <section className="grid gap-12 md:grid-cols-[1.5fr,1fr] max-w-5xl mx-auto">
+          <form className="space-y-6" action="#">
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="firstName" className="mb-3 block text-xs font-bold uppercase tracking-widest text-black">First Name</label>
+                <input id="firstName" type="text" required className="w-full border-b border-gray-300 py-3 text-sm outline-none transition focus:border-black bg-transparent" placeholder="Jane" />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="mb-3 block text-xs font-bold uppercase tracking-widest text-black">Last Name</label>
+                <input id="lastName" type="text" required className="w-full border-b border-gray-300 py-3 text-sm outline-none transition focus:border-black bg-transparent" placeholder="Doe" />
+              </div>
+            </div>
+            
+            <div>
+              <label htmlFor="email" className="mb-3 block text-xs font-bold uppercase tracking-widest text-black">Email</label>
+              <input id="email" type="email" required className="w-full border-b border-gray-300 py-3 text-sm outline-none transition focus:border-black bg-transparent" placeholder="jane@example.com" />
+            </div>
+            
+            <div>
+              <label htmlFor="message" className="mb-3 block text-xs font-bold uppercase tracking-widest text-black">Message</label>
+              <textarea id="message" rows={4} required className="w-full border-b border-gray-300 py-3 text-sm outline-none transition focus:border-black bg-transparent resize-none" placeholder="How can we help?" />
+            </div>
+            
+            <button type="submit" className="w-full bg-black text-white px-10 py-4 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors mt-4">
+              Send Message
+            </button>
+          </form>
 
-        <aside className="space-y-6 border border-neutral-200 p-6">
-          <div>
-            <h2 className="mb-2 text-xs uppercase tracking-[0.18em] text-neutral-500">Email</h2>
-            <p className="text-sm text-[#222222]">hello@fashionasia.com</p>
-          </div>
-          <div>
-            <h2 className="mb-2 text-xs uppercase tracking-[0.18em] text-neutral-500">Social</h2>
-            <ul className="space-y-2 text-sm text-[#222222]">
-              <li>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#111111]">
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#111111]">
-                  Facebook
-                </a>
-              </li>
-              <li>
-                <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#111111]">
-                  Pinterest
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h2 className="mb-2 text-xs uppercase tracking-[0.18em] text-neutral-500">Studio</h2>
-            <p className="text-sm text-[#222222]">2F, Seongsu Fashion District, Seoul</p>
-          </div>
-        </aside>
-      </section>
-
-      <section className="mt-10 border border-neutral-200">
-        <div className="flex h-60 items-center justify-center bg-neutral-100 text-sm uppercase tracking-[0.12em] text-neutral-500 sm:h-72">
-          Minimal Map Placeholder
-        </div>
+          <aside className="space-y-10 border-l border-gray-200 pl-12">
+            <div>
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-gray-500">Email</h2>
+              <p className="text-sm text-black">hello@fassion4asian.com</p>
+            </div>
+            <div>
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-gray-500">Studio</h2>
+              <p className="text-sm text-black leading-relaxed">2F, Seongsu Fashion District<br/>Seoul, South Korea</p>
+            </div>
+            <div>
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-gray-500">Social</h2>
+              <ul className="space-y-3 text-sm text-black">
+                <li><a href="#" className="hover:text-gray-500 transition-colors">Instagram</a></li>
+                <li><a href="#" className="hover:text-gray-500 transition-colors">Twitter</a></li>
+                <li><a href="#" className="hover:text-gray-500 transition-colors">Pinterest</a></li>
+              </ul>
+            </div>
+          </aside>
+        </section>
       </section>
     </main>
   );

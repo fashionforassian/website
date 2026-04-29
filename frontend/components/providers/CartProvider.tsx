@@ -36,6 +36,8 @@ type CartContextValue = {
   items: CartItem[];
   cartCount: number;
   subtotal: number;
+  isCartOpen: boolean;
+  setIsCartOpen: (open: boolean) => void;
   addToCart: (input: AddItemInput) => void;
   updateQuantity: (lineId: string, quantity: number) => void;
   removeFromCart: (lineId: string) => void;
@@ -51,6 +53,7 @@ function buildLineId(input: AddItemInput): string {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [items, setItems] = useState<CartItem[]>(() => {
     if (typeof window === "undefined") {
       return [];
@@ -81,6 +84,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       items,
       cartCount,
       subtotal,
+      isCartOpen,
+      setIsCartOpen,
       addToCart: (input) => {
         const quantity = Math.max(1, input.quantity ?? 1);
         const lineId = buildLineId(input);
@@ -111,6 +116,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             },
           ];
         });
+        
+        // Open cart after adding item
+        setIsCartOpen(true);
       },
       updateQuantity: (lineId, quantity) => {
         const normalized = Math.max(1, quantity);
@@ -127,7 +135,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setItems([]);
       },
     };
-  }, [items]);
+  }, [items, isCartOpen]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

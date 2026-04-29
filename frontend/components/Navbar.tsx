@@ -1,310 +1,131 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ClerkLoaded, UserButton, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { useCart } from "@/components/providers/CartProvider";
-import { buildBackendUrl } from "@/lib/backend-api";
 import { navCategories } from "@/lib/data";
 
-const megaMenu = {
-  men: [
-    "Outerwear",
-    "Shirts",
-    "Trousers",
-    "Denim",
-    "Footwear",
-    "Accessories",
-  ],
-  kids: [
-    "Shirts & Tops",
-    "Pants & Shorts",
-    "Dresses & Skirts",
-    "Outerwear",
-    "Footwear",
-    "Accessories",
-  ],
-};
-
 export default function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState<"men" | "kids" | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { cartCount } = useCart();
-  const { isLoaded, isSignedIn, userId, getToken } = useAuth();
-  const [canAccessAdmin, setCanAccessAdmin] = useState(false);
-  const [authNotice, setAuthNotice] = useState("");
-  const previousSignedInRef = useRef(false);
+  const { cartCount, setIsCartOpen } = useCart();
+  const { isSignedIn } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoaded) {
-      return;
-    }
-
-    if (!isSignedIn) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function syncAndCheckAccess() {
-      try {
-        const token = await getToken();
-        if (!token) {
-          if (!cancelled) {
-            setCanAccessAdmin(false);
-          }
-          return;
-        }
-
-        const sessionResponse = await fetch(buildBackendUrl("/api/auth/session"), {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (sessionResponse.ok) {
-          const sessionData = (await sessionResponse.json()) as { created?: boolean };
-          const hasJustSignedIn = !previousSignedInRef.current;
-          if (!cancelled && hasJustSignedIn) {
-            setAuthNotice(sessionData.created ? "Welcome! Your account has been created." : "You are now logged in.");
-            setTimeout(() => {
-              setAuthNotice("");
-            }, 4000);
-          }
-        }
-
-        const response = await fetch(buildBackendUrl("/api/admin/me"), {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!cancelled) {
-          setCanAccessAdmin(response.ok);
-        }
-      } catch {
-        if (!cancelled) {
-          setCanAccessAdmin(false);
-        }
-      }
-    }
-
-    void syncAndCheckAccess();
-    previousSignedInRef.current = true;
-
-    return () => {
-      cancelled = true;
-    };
-  }, [getToken, isLoaded, isSignedIn, userId]);
-
-  useEffect(() => {
-    if (!isSignedIn) {
-      previousSignedInRef.current = false;
-    }
-  }, [isSignedIn]);
 
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const term = searchQuery.trim();
-    router.push(term ? `/search?q=${encodeURIComponent(term)}` : "/search");
+    if (term) router.push(`/search?q=${encodeURIComponent(term)}`);
   }
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: "easeOut" }}
-      className="sticky top-0 z-50 border-b border-neutral-200 bg-white/95 backdrop-blur"
-      onMouseLeave={() => setActiveMenu(null)}
-    >
-      <div className="mx-auto flex min-h-16 w-full max-w-[1400px] items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4 md:px-8">
-        <button
-          aria-label="Toggle navigation"
-          className="shrink-0 border border-neutral-300 px-3 py-2 text-[10px] tracking-[0.2em] md:hidden"
-          onClick={() => setMobileOpen((prev) => !prev)}
-          type="button"
-        >
-          MENU
-        </button>
+    <>
+      {/* Announcement Bar */}
+      <div className="bg-black text-white text-[10px] sm:text-xs text-center py-2 uppercase tracking-widest">
+        Free shipping on orders over $50
+      </div>
 
-        <Link
-          href="/"
-          className="min-w-0 flex-1 truncate pr-2 font-heading text-[11px] tracking-[0.12em] text-[#111111] sm:text-sm sm:tracking-[0.16em] md:flex-none md:pr-0 md:text-xl md:tracking-[0.2em]"
-        >
-          FASSION 4 ASIAN
-        </Link>
+      <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-200">
+        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Mobile Menu Toggle */}
+          <button
+            className="lg:hidden p-2 -ml-2 text-black"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
 
-        <nav className="hidden items-center gap-5 text-xs font-medium uppercase tracking-[0.16em] lg:flex xl:gap-7 xl:tracking-[0.18em]">
-          {navCategories.map((item) => {
-            const hasMegaMenu = item.label === "Men" || item.label === "Kids";
-            const menuKey = item.label.toLowerCase() as "men" | "kids";
+          {/* Logo */}
+          <Link href="/" className="font-bold text-lg sm:text-xl tracking-tighter text-black uppercase lg:w-1/4">
+            FASSION 4 ASIAN
+          </Link>
 
-            return (
-              <div
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center justify-center gap-8 text-sm font-medium uppercase tracking-widest text-black flex-1">
+            {navCategories.map((item) => (
+              <Link key={item.label} href={item.href} className="hover:text-gray-500 transition-colors">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-4 text-sm font-medium uppercase tracking-widest lg:w-1/4 text-black">
+            <div className="hidden lg:block">
+              <form onSubmit={submitSearch} className="flex border-b border-black pb-1">
+                <input
+                  type="text"
+                  placeholder="SEARCH"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-transparent outline-none w-32 focus:w-48 transition-all placeholder-gray-400 text-xs"
+                />
+              </form>
+            </div>
+
+            <ClerkLoaded>
+              {!isSignedIn ? (
+                <Link href="/sign-in" className="hidden lg:block hover:text-gray-500 transition-colors">
+                  LOG IN
+                </Link>
+              ) : (
+                <div className="hidden lg:block">
+                  <UserButton />
+                </div>
+              )}
+            </ClerkLoaded>
+
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="hover:text-gray-500 transition-colors flex items-center gap-1"
+            >
+              <span>CART</span>
+              {cartCount > 0 && <span>({cartCount})</span>}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-xl py-4 px-4 flex flex-col space-y-4">
+            {navCategories.map((item) => (
+              <Link
                 key={item.label}
-                onMouseEnter={hasMegaMenu ? () => setActiveMenu(menuKey) : () => setActiveMenu(null)}
-                onFocus={hasMegaMenu ? () => setActiveMenu(menuKey) : () => setActiveMenu(null)}
+                href={item.href}
+                className="text-base font-medium uppercase tracking-widest text-black"
+                onClick={() => setMobileMenuOpen(false)}
               >
-                <Link
-                  href={item.href}
-                  className="relative text-[#222222] transition-colors hover:text-[#111111]"
-                >
-                  {item.label}
-                </Link>
-              </div>
-            );
-          })}
-        </nav>
-
-        <div className="flex shrink-0 items-center gap-2 text-[10px] uppercase tracking-[0.11em] sm:text-xs sm:tracking-[0.15em]">
-          <ClerkLoaded>
+                {item.label}
+              </Link>
+            ))}
+            <div className="pt-4 border-t border-gray-200">
+              <form onSubmit={(e) => { submitSearch(e); setMobileMenuOpen(false); }} className="flex border border-gray-300 p-2">
+                <input
+                  type="text"
+                  placeholder="SEARCH"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-transparent outline-none w-full text-sm placeholder-gray-400"
+                />
+              </form>
+            </div>
             {!isSignedIn ? (
-              <div className="hidden items-center gap-3 md:flex">
-                <Link href="/sign-in" className="hover:text-[#111111]">
-                  Sign In
-                </Link>
-                <Link href="/sign-up" className="hover:text-[#111111]">
-                  Sign Up
-                </Link>
-              </div>
+              <Link href="/sign-in" className="text-sm font-medium uppercase tracking-widest text-gray-500 pt-2" onClick={() => setMobileMenuOpen(false)}>
+                Log In
+              </Link>
             ) : (
-              <div className="hidden md:inline">
+              <div className="pt-2">
                 <UserButton />
               </div>
             )}
-          </ClerkLoaded>
-          <form onSubmit={submitSearch} className="hidden lg:block">
-            <div className="flex h-10 items-center rounded-full border border-neutral-300 bg-white px-3 transition focus-within:border-[#111111]">
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search products"
-                className="w-36 bg-transparent text-[11px] normal-case tracking-normal text-[#111111] outline-none placeholder:text-neutral-400 xl:w-48"
-              />
-              <button type="submit" className="ml-2 text-neutral-500 hover:text-[#111111]" aria-label="Search products">
-                Go
-              </button>
-            </div>
-          </form>
-          {canAccessAdmin ? (
-            <Link href="/admin" className="hidden lg:inline hover:text-[#111111]">
-              Admin
-            </Link>
-          ) : null}
-          <Link href="/cart" className="whitespace-nowrap hover:text-[#111111]" aria-label={`Cart with ${cartCount} items`}>
-            <span className="sm:hidden">Cart</span>
-            <span className="hidden sm:inline">Cart ({cartCount})</span>
-          </Link>
-        </div>
-      </div>
-
-      {activeMenu ? (
-        <motion.div
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          className="hidden border-t border-neutral-200 bg-white md:block"
-        >
-          <div className="mx-auto max-w-[1400px] px-4 py-6 md:px-8">
-            <p className="mb-5 text-[11px] uppercase tracking-[0.2em] text-neutral-500 font-semibold">
-              {activeMenu === "men" ? "Men's Collection" : "Kids' Collection"}
-            </p>
-            <ul className="grid grid-cols-2 gap-x-5 gap-y-3 text-sm lg:grid-cols-3 lg:gap-x-8">
-              {megaMenu[activeMenu].map((item, idx) => (
-                <motion.li 
-                  key={item}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.05, ease: "easeOut" }}
-                >
-                  <Link
-                    href={`/${activeMenu}`}
-                    className="text-[#222222] transition-colors hover:text-[#111111] hover:translate-x-1 inline-block"
-                  >
-                    {item}
-                  </Link>
-                </motion.li>
-              ))}
-            </ul>
           </div>
-        </motion.div>
-      ) : null}
-
-      {mobileOpen ? (
-        <nav className="border-t border-neutral-200 bg-white px-4 py-5 md:hidden">
-          <ul className="space-y-3 text-xs uppercase tracking-[0.15em]">
-            {navCategories.map((item) => (
-              <li key={item.label}>
-                <Link href={item.href} className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-            <li className="pt-2">
-              <form
-                onSubmit={(event) => {
-                  submitSearch(event);
-                  setMobileOpen(false);
-                }}
-              >
-                <div className="flex h-11 items-center rounded-full border border-neutral-300 bg-white px-3">
-                  <input
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder="Search products"
-                    className="w-full bg-transparent text-sm normal-case tracking-normal text-[#111111] outline-none placeholder:text-neutral-400"
-                  />
-                  <button type="submit" className="text-neutral-500">Go</button>
-                </div>
-              </form>
-            </li>
-            {canAccessAdmin ? (
-              <li>
-                <Link href="/admin" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
-                  Admin
-                </Link>
-              </li>
-            ) : null}
-            {!isSignedIn ? (
-              <>
-                <li>
-                  <Link href="/sign-in" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
-                    Sign In
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/sign-up" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
-                    Sign Up
-                  </Link>
-                </li>
-              </>
-            ) : null}
-            <li>
-              <Link href="/about" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
-                About
-              </Link>
-            </li>
-            <li>
-              <Link href="/contact" className="block py-1 text-[#222222]" onClick={() => setMobileOpen(false)}>
-                Contact
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      ) : null}
-
-      {isSignedIn && authNotice ? (
-        <div className="border-t border-emerald-200 bg-emerald-50 px-4 py-2 text-center text-xs text-emerald-700">
-          {authNotice}
-        </div>
-      ) : null}
-    </motion.header>
+        )}
+      </header>
+    </>
   );
 }

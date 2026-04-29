@@ -11,7 +11,11 @@ type ProductDetailPageProps = {
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { slug } = await params;
-  const products = await fetchBackendJson<Product[]>("/api/products");
+  let products: Product[] = [];
+  try {
+    const payload = await fetchBackendJson<any>("/api/products");
+    products = Array.isArray(payload) ? payload : (payload?.items || payload?.products || []);
+  } catch {}
   const product = products.find((item) => item.slug === slug);
 
   if (!product) {

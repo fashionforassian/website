@@ -8,7 +8,11 @@ type ProductsPageProps = {
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const { sort } = await searchParams;
-  const products = await fetchBackendJson<Product[]>("/api/products");
+  let products: Product[] = [];
+  try {
+    const payload = await fetchBackendJson<any>("/api/products");
+    products = Array.isArray(payload) ? payload : (payload?.items || payload?.products || []);
+  } catch {}
 
   return <ProductsCatalog products={products} initialSort={sort ?? "newest"} />;
 }

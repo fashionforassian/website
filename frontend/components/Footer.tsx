@@ -3,22 +3,22 @@ import NewsletterForm from "@/components/NewsletterForm";
 
 const footerLinks = {
   Shop: [
-    { label: "New Arrivals", href: "/products?sort=newest" },
-    { label: "Men", href: "/category/men" },
-    { label: "Kids", href: "/category/kids" },
-    { label: "Accessories", href: "/category/accessories" },
+    { label: "New Arrivals", href: "/new-arrivals" },
+    { label: "Men", href: "/men" },
+    { label: "Kids", href: "/kids" },
+    { label: "Accessories", href: "/products" },
   ],
   Company: [
     { label: "About", href: "/about" },
-    { label: "Campaigns", href: "/about" },
     { label: "Careers", href: "/contact" },
-    { label: "Press", href: "/contact" },
+    { label: "Privacy Policy", href: "/privacy-policy" },
+    { label: "Refund Policy", href: "/refund-policy" },
   ],
   Help: [
-    { label: "Shipping", href: "/contact" },
-    { label: "Returns", href: "/contact" },
-    { label: "Size Guide", href: "/contact" },
-    { label: "FAQ", href: "/contact" },
+    { label: "Shopping Cart", href: "/cart" },
+    { label: "Shipping Info", href: "/contact" },
+    { label: "Returns", href: "/refund-policy" },
+    { label: "Contact Us", href: "/contact" },
   ],
 };
 

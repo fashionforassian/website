@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter } from "next/font/google";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { CartProvider } from "@/components/providers/CartProvider";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
+import SlideOverCart from "@/components/SlideOverCart";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
   subsets: ["latin"],
 });
 
@@ -29,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable} antialiased`}>
+      <body className={`${inter.variable} antialiased font-sans`}>
         <ClerkProvider
           signInFallbackRedirectUrl="/"
           signInForceRedirectUrl="/"
@@ -41,6 +37,7 @@ export default function RootLayout({
               <Navbar />
               {children}
               <Footer />
+              <SlideOverCart />
             </CartProvider>
           </SmoothScrollProvider>
         </ClerkProvider>

@@ -2,180 +2,105 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { buildBackendUrl } from "@/lib/backend-api";
-import { useCart, type CartItem } from "@/components/providers/CartProvider";
-
-function money(value: number): string {
-  return `₹${value.toFixed(2)}`;
-}
+import { useCart } from "@/components/providers/CartProvider";
+import { formatPrice } from "@/lib/data";
 
 export default function CartPage() {
-  const { items, subtotal, updateQuantity, removeFromCart, clearCart } = useCart();
-  const [customerName, setCustomerName] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
-  const [orderId, setOrderId] = useState("");
+  const { items, updateQuantity, removeFromCart, subtotal } = useCart();
 
-  const shipping = items.length === 0 ? 0 : subtotal >= 200 ? 0 : 12;
-  const total = subtotal + shipping;
-
-  async function handleCheckout() {
-    setSubmitting(true);
-    setMessage("");
-
-    try {
-      const response = await fetch(buildBackendUrl("/api/orders"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName,
-          customerEmail,
-          items,
-        }),
-      });
-
-      const data = (await response.json()) as { id?: string; message?: string };
-
-      if (!response.ok) {
-        throw new Error(data.message ?? "Unable to place order.");
-      }
-
-      setOrderId(data.id ?? "");
-      setMessage("Order placed successfully.");
-      setCustomerName("");
-      setCustomerEmail("");
-      clearCart();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to place order.");
-    } finally {
-      setSubmitting(false);
-    }
+  if (items.length === 0) {
+    return (
+      <div className="max-w-[1440px] mx-auto px-4 py-32 sm:px-6 lg:px-8 text-center min-h-[60vh] flex flex-col justify-center items-center">
+        <h1 className="text-3xl font-bold uppercase tracking-tight text-black mb-6">Your Cart is Empty</h1>
+        <p className="text-gray-500 mb-8 max-w-md mx-auto">Looks like you haven't added anything to your cart yet.</p>
+        <Link href="/products" className="bg-black text-white px-10 py-4 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors">
+          Continue Shopping
+        </Link>
+      </div>
+    );
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1400px] px-4 py-12 md:px-8 md:py-16">
-      <header className="mb-8 border-b border-neutral-200 pb-5">
-        <p className="mb-2 text-xs uppercase tracking-[0.2em] text-neutral-500">Shopping Bag</p>
-        <h1 className="font-heading text-3xl text-[#111111] sm:text-4xl">Cart</h1>
-      </header>
+    <div className="max-w-[1440px] mx-auto px-4 py-16 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-bold uppercase tracking-tight text-black mb-12">Shopping Cart</h1>
 
-      {items.length === 0 ? (
-        <section className="border border-neutral-200 p-8 text-center">
-          <p className="text-sm text-[#222222]">
-            {orderId ? `Order ${orderId} has been placed.` : "Your cart is empty."}
-          </p>
-          <Link
-            href="/products"
-            className="mt-4 inline-block border border-[#111111] px-6 py-3 text-xs uppercase tracking-[0.18em] text-[#111111] hover:bg-[#111111] hover:text-white"
-          >
-            Continue Shopping
-          </Link>
-        </section>
-      ) : (
-        <section className="grid gap-8 lg:grid-cols-[1fr,380px]">
-          <div className="space-y-4">
-            {items.map((item: CartItem) => (
-              <article
-                key={item.lineId}
-                className="grid gap-4 border border-neutral-200 p-4 sm:grid-cols-[130px,1fr]"
-              >
-                <div className="relative aspect-[4/5] bg-neutral-100 sm:w-[130px]">
-                  <Image src={item.image} alt={item.name} fill className="object-cover" />
-                </div>
-
-                <div className="flex flex-col justify-between gap-3">
-                  <div>
-                    <h2 className="text-sm uppercase tracking-[0.12em] text-[#111111]">{item.name}</h2>
-                    <p className="mt-1 text-sm text-[#222222]">{money(item.price)}</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.12em] text-neutral-500">
-                      Size: {item.size ?? "-"} | Color: {item.color ?? "-"}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => updateQuantity(item.lineId, item.quantity - 1)}
-                      className="border border-neutral-300 px-3 py-1 text-sm"
-                    >
-                      -
-                    </button>
-                    <span className="min-w-8 text-center text-sm">{item.quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => updateQuantity(item.lineId, item.quantity + 1)}
-                      className="border border-neutral-300 px-3 py-1 text-sm"
-                    >
-                      +
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeFromCart(item.lineId)}
-                      className="ml-2 text-xs uppercase tracking-[0.12em] text-neutral-500 hover:text-[#111111]"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
+      <div className="grid lg:grid-cols-12 gap-12">
+        <div className="lg:col-span-8">
+          <div className="hidden sm:grid grid-cols-6 gap-4 border-b border-gray-200 pb-4 mb-6 text-xs font-bold uppercase tracking-widest text-gray-500">
+            <div className="col-span-3">Product</div>
+            <div className="col-span-1 text-center">Quantity</div>
+            <div className="col-span-1 text-right">Total</div>
+            <div className="col-span-1"></div>
           </div>
 
-          <aside className="h-fit border border-neutral-200 p-6">
-            <h2 className="mb-5 text-xs uppercase tracking-[0.2em] text-[#111111]">Order Summary</h2>
-            <div className="flex items-center justify-between text-sm text-[#222222]">
-              <span>Subtotal</span>
-              <span>{money(subtotal)}</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-sm text-[#222222]">
-              <span>Shipping</span>
-              <span>{shipping === 0 ? "Free" : money(shipping)}</span>
-            </div>
-            <div className="mt-4 border-t border-neutral-200 pt-4">
-              <div className="flex items-center justify-between text-base text-[#111111]">
-                <span>Total</span>
-                <span>{money(total)}</span>
+          <div className="space-y-8 sm:space-y-6">
+            {items.map((item) => (
+              <div key={item.lineId} className="flex flex-col sm:grid sm:grid-cols-6 gap-4 items-center sm:items-center border-b border-gray-100 pb-8 sm:pb-6 last:border-0">
+                <div className="col-span-3 flex w-full gap-4">
+                  <Link href={`/product/${item.slug}`} className="shrink-0">
+                    <div className="relative h-32 w-24 sm:h-40 sm:w-32 overflow-hidden bg-gray-50">
+                      <Image src={item.image} alt={item.name} fill className="object-cover" />
+                    </div>
+                  </Link>
+                  <div className="flex flex-col justify-center">
+                    <Link href={`/product/${item.slug}`} className="text-sm font-medium text-black hover:text-gray-500 mb-1">
+                      {item.name}
+                    </Link>
+                    <p className="text-sm text-gray-500 mb-2">{formatPrice(item.price)}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-widest">
+                      {item.color} {item.size && `| ${item.size}`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="col-span-1 flex justify-start sm:justify-center w-full mt-4 sm:mt-0">
+                  <div className="flex items-center border border-gray-300">
+                    <button onClick={() => updateQuantity(item.lineId, item.quantity - 1)} className="px-3 py-1 sm:py-2 text-gray-500 hover:text-black hover:bg-gray-50 transition-colors" disabled={item.quantity <= 1}>-</button>
+                    <span className="px-2 sm:px-4 py-1 sm:py-2 text-sm font-medium text-black min-w-[2.5rem] text-center">{item.quantity}</span>
+                    <button onClick={() => updateQuantity(item.lineId, item.quantity + 1)} className="px-3 py-1 sm:py-2 text-gray-500 hover:text-black hover:bg-gray-50 transition-colors">+</button>
+                  </div>
+                </div>
+
+                <div className="col-span-1 text-left sm:text-right w-full font-medium text-black text-sm mt-2 sm:mt-0">
+                  {formatPrice(item.price * item.quantity)}
+                </div>
+
+                <div className="col-span-1 text-right w-full sm:w-auto mt-2 sm:mt-0">
+                  <button onClick={() => removeFromCart(item.lineId)} className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-red-600 transition-colors border-b border-transparent hover:border-red-600 pb-0.5">
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="lg:col-span-4">
+          <div className="bg-gray-50 p-8 border border-gray-100">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-black mb-6 border-b border-gray-200 pb-4">Order Summary</h2>
+            
+            <div className="space-y-4 text-sm mb-6 border-b border-gray-200 pb-6">
+              <div className="flex justify-between text-gray-600">
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Shipping</span>
+                <span>Calculated at checkout</span>
               </div>
             </div>
-
-            <div className="mt-6 space-y-3">
-              <input
-                value={customerName}
-                onChange={(event) => setCustomerName(event.target.value)}
-                placeholder="Full name"
-                className="h-11 w-full border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]"
-              />
-              <input
-                type="email"
-                value={customerEmail}
-                onChange={(event) => setCustomerEmail(event.target.value)}
-                placeholder="Email address"
-                className="h-11 w-full border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]"
-              />
+            
+            <div className="flex justify-between text-base font-bold text-black mb-8">
+              <span>Total</span>
+              <span>{formatPrice(subtotal)}</span>
             </div>
-
-            <button
-              type="button"
-              onClick={() => void handleCheckout()}
-              disabled={submitting}
-              className="mt-6 w-full border border-[#111111] bg-[#111111] py-3 text-xs uppercase tracking-[0.2em] text-white hover:bg-white hover:text-[#111111] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {submitting ? "Processing..." : "Proceed To Checkout"}
-            </button>
-            <button
-              type="button"
-              onClick={clearCart}
-              className="mt-3 w-full border border-neutral-300 py-3 text-xs uppercase tracking-[0.2em] text-[#222222] hover:border-[#111111]"
-            >
-              Clear Cart
-            </button>
-
-            {message ? <p className="mt-4 text-sm text-[#222222]">{message}</p> : null}
-          </aside>
-        </section>
-      )}
-    </main>
+            
+            <Link href="/checkout" className="block w-full text-center bg-black text-white px-8 py-4 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors">
+              Proceed to Checkout
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
