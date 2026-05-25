@@ -1,5 +1,5 @@
 const { verifyToken } = require("@clerk/backend");
-const { env } = require("../config/env");
+const { getUserByClerkId } = require("../models/user-model");
 const { unauthorized } = require("../utils/http-error");
 
 function getAuthToken(req) {
@@ -9,7 +9,9 @@ function getAuthToken(req) {
 }
 
 async function getVerifiedAuthPayload(req) {
-  if (!env.clerkSecretKey) {
+  const clerkSecretKey = process.env.CLERK_SECRET_KEY || "";
+
+  if (!clerkSecretKey) {
     throw unauthorized("Missing CLERK_SECRET_KEY environment variable.");
   }
 
@@ -18,7 +20,7 @@ async function getVerifiedAuthPayload(req) {
     throw unauthorized();
   }
 
-  const payload = await verifyToken(token, { secretKey: env.clerkSecretKey });
+  const payload = await verifyToken(token, { secretKey: clerkSecretKey });
   if (!payload?.sub) {
     throw unauthorized();
   }
@@ -41,15 +43,13 @@ async function requireAdminAuth(req, _res, next) {
   try {
     const payload = await getVerifiedAuthPayload(req);
 
-    if (!env.adminUserIds.length) {
-      throw unauthorized("Admin access is not configured.");
-    }
-
-    if (!env.adminUserIds.includes(payload.sub)) {
+    const user = await getUserByClerkId(payload.sub);
+    if (!user || user.role !== "admin") {
       throw unauthorized("Admin access required.");
     }
 
     req.userId = payload.sub;
+    req.authPayload = payload;
     next();
   } catch (error) {
     next(error.statusCode ? error : unauthorized());

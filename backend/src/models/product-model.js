@@ -7,7 +7,7 @@ async function listProducts() {
 
 async function listVisibleProducts() {
   const products = await listProducts();
-  return products.filter((product) => product.status === "active" && product.category !== "women");
+  return products.filter((product) => product.status === "active");
 }
 
 async function getProductById(id) {

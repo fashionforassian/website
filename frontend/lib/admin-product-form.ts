@@ -8,6 +8,14 @@ export type EditableColorVariant = {
   images: string[];
 };
 
+export type EditableVariantStock = {
+  id: string;
+  color: string;
+  size: string;
+  inventory: string;
+  price: string;
+};
+
 export type ProductFormState = {
   id?: string;
   name: string;
@@ -18,7 +26,6 @@ export type ProductFormState = {
   price: string;
   compareAtPrice: string;
   inventory: string;
-  popularity: string;
   status: ProductStatus;
   isNew: boolean;
   isFeatured: boolean;
@@ -30,4 +37,5 @@ export type ProductFormState = {
   sizes: string[];
   tags: string[];
   colorVariants: EditableColorVariant[];
+  variantStocks: EditableVariantStock[];
 };

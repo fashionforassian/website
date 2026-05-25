@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { CartProvider } from "@/components/providers/CartProvider";
+import AuthSyncProvider from "@/components/providers/AuthSyncProvider";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import SlideOverCart from "@/components/SlideOverCart";
 import "./globals.css";
@@ -32,14 +33,16 @@ export default function RootLayout({
           signUpFallbackRedirectUrl="/"
           signUpForceRedirectUrl="/"
         >
-          <SmoothScrollProvider>
-            <CartProvider>
-              <Navbar />
-              {children}
-              <Footer />
-              <SlideOverCart />
-            </CartProvider>
-          </SmoothScrollProvider>
+          <AuthSyncProvider>
+            <SmoothScrollProvider>
+              <CartProvider>
+                <Navbar />
+                {children}
+                <Footer />
+                <SlideOverCart />
+              </CartProvider>
+            </SmoothScrollProvider>
+          </AuthSyncProvider>
         </ClerkProvider>
       </body>
     </html>

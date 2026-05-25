@@ -12,10 +12,10 @@ export default function CollectionsPage() {
         </h1>
       </section>
 
-      <section className="px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto pb-24 space-y-24">
+      <section className="px-4 sm:px-6 lg:px-8 max-w-360 mx-auto pb-24 space-y-24">
         {featuredCollections.map((collection, index) => (
           <article key={collection.title} className="grid md:grid-cols-2 gap-12 items-center">
-            <div className={`relative h-[60vh] min-h-[400px] w-full bg-gray-50 ${index % 2 === 1 ? "md:order-2" : ""}`}>
+            <div className={`relative h-[60vh] min-h-100 w-full bg-gray-50 ${index % 2 === 1 ? "md:order-2" : ""}`}>
               <Image src={collection.image} alt={collection.title} fill className="object-cover" />
             </div>
             <div className={`text-center md:text-left ${index % 2 === 1 ? "md:order-1 md:pl-12" : "md:pr-12"}`}>

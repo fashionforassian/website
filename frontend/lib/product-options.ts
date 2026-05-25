@@ -25,7 +25,8 @@ export const COLOR_PRESETS = [
   { name: "Pink", swatch: "#D8A7B1" },
 ] as const;
 
-export const SIZE_PRESETS = [
+export const LETTER_SIZE_PRESETS = [
+  "XXS",
   "XS",
   "S",
   "M",
@@ -33,17 +34,11 @@ export const SIZE_PRESETS = [
   "XL",
   "XXL",
   "3XL",
-  "36",
-  "37",
-  "38",
-  "39",
-  "40",
-  "41",
-  "42",
-  "43",
-  "44",
-  "One Size",
 ] as const;
+
+export const NUMBER_SIZE_PRESETS = ["36", "37", "38", "39", "40", "41", "42", "43", "44"] as const;
+
+export const SPECIAL_SIZE_PRESETS = ["One Size"] as const;
 
 export function getColorSwatchValue(name: string, fallback?: string): string {
   const normalizedName = name.trim().toLowerCase();

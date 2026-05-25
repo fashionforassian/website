@@ -9,10 +9,14 @@ const {
 } = require("../models/product-model");
 const { listOrders, getOrderById, updateOrder } = require("../models/order-model");
 const { listSubscribers } = require("../models/subscriber-model");
+const { listUsers, updateUser } = require("../models/user-model");
+const { listContacts } = require("../models/contact-model");
+const { sendOrderShippedEmail } = require("../utils/mailer");
 const {
   slugify,
   listCategoriesWithPaths,
   listCategoryTree,
+  seedDefaultCategories,
   getCategoryById,
   getCategoryBySlug,
   createCategory,
@@ -139,8 +143,22 @@ async function getAdminOrderById(req, res) {
 }
 
 async function updateAdminOrder(req, res) {
+  const previous = await getOrderById(req.params.id);
   const updated = await updateOrder(req.params.id, req.body || {});
   if (!updated) throw notFound("Order not found.");
+
+  // if status changed to shipped, notify customer
+  try {
+    const prevStatus = previous && previous.status ? String(previous.status).toLowerCase() : null;
+    const nextStatus = updated && updated.status ? String(updated.status).toLowerCase() : null;
+    if (prevStatus !== "shipped" && nextStatus === "shipped") {
+      await sendOrderShippedEmail(updated);
+    }
+  } catch (err) {
+    console.error("Failed to send shipped email:", err && err.message);
+  }
+
+    seedDefaultCategories,
   res.json(updated);
 }
 
@@ -149,7 +167,26 @@ async function getAdminSubscribers(_req, res) {
   res.json(subscribers);
 }
 
+async function getAdminContacts(_req, res) {
+  const contacts = await listContacts();
+  res.json(contacts);
+}
+
+async function getAdminUsers(_req, res) {
+  const users = await listUsers();
+  res.json(users);
+}
+
+async function updateAdminUser(req, res) {
+  const id = req.params.id;
+  const patch = req.body || {};
+  const updated = await updateUser(id, patch);
+  if (!updated) throw notFound("User not found.");
+  res.json(updated);
+}
+
 async function getAdminCategories(_req, res) {
+  await seedDefaultCategories();
   const [tree, flat] = await Promise.all([listCategoryTree(), listCategoriesWithPaths()]);
   res.json({ tree, flat });
 }
@@ -278,6 +315,9 @@ module.exports = {
   getAdminOrderById,
   updateAdminOrder,
   getAdminSubscribers,
+  getAdminUsers,
+  updateAdminUser,
+  getAdminContacts,
   getAdminCategories,
   createAdminCategory,
   updateAdminCategory,

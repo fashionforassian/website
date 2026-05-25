@@ -30,7 +30,7 @@ export default async function KidsPage() {
         </div>
       </section>
 
-      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-360 mx-auto">
         <div className="flex justify-between items-end mb-10 border-b border-gray-200 pb-4">
           <h2 className="text-2xl font-bold uppercase tracking-tight text-black">All Kids</h2>
           <p className="text-xs font-bold uppercase tracking-widest text-gray-500">{kidsProducts.length} Items</p>

@@ -4,16 +4,24 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import AdminProductEditorModal from "@/components/AdminProductEditorModal";
 import { buildBackendUrl } from "@/lib/backend-api";
-import { type EditableColorVariant, type ProductFormState } from "@/lib/admin-product-form";
+import { type EditableColorVariant, type EditableVariantStock, type ProductFormState } from "@/lib/admin-product-form";
 import { type Order, type OrderStatus, type Subscriber } from "@/lib/backoffice";
 import { categoryMeta, formatPrice, type Category, type Product } from "@/lib/data";
 import { getColorSwatchValue } from "@/lib/product-options";
 
 type UploadPreset = "cover" | "gallery";
 type CropFocus = "center" | "north" | "south" | "east" | "west";
-type AdminSection = "catalog" | "categories" | "orders" | "subscribers";
 type MessageTone = "neutral" | "success" | "error";
 const orderStatusOptions: OrderStatus[] = ["placed", "processing", "shipped", "fulfilled", "cancelled"];
+
+type AdminContact = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  message: string;
+  createdAt: string;
+};
 
 type AdminCategory = {
   id: string;
@@ -32,6 +40,7 @@ type AdminCategoriesResponse = {
   tree: AdminCategory[];
   flat: AdminCategory[];
 };
+type AdminSection = "overview" | "catalog" | "categories" | "orders" | "subscribers" | "users" | "contacts";
 
 function pathKeyFromSlugs(slugs: string[]): string {
   return slugs.map((item) => item.trim().toLowerCase()).filter(Boolean).join("/");
@@ -47,7 +56,6 @@ function createEmptyForm(): ProductFormState {
     price: "",
     compareAtPrice: "",
     inventory: "0",
-    popularity: "75",
     status: "active",
     isNew: false,
     isFeatured: false,
@@ -67,6 +75,7 @@ function createEmptyForm(): ProductFormState {
         images: [],
       },
     ],
+    variantStocks: [],
   };
 }
 
@@ -76,6 +85,9 @@ function toFormState(product: Product): ProductFormState {
   const productSizes = Array.isArray(product.sizes) ? product.sizes : [];
   const productTags = Array.isArray(product.tags) ? product.tags : [];
   const productImages = Array.isArray(product.images) ? product.images : [];
+  const productVariantStocks = Array.isArray(product.variantStocks) ? product.variantStocks : [];
+  const fallbackColors = colorVariants.length ? colorVariants.map((variant) => variant.name) : productColors;
+  const fallbackVariantStocks = buildVariantStocks(fallbackColors, productSizes, product.inventory, String(product.price));
 
   return {
     id: product.id,
@@ -87,7 +99,6 @@ function toFormState(product: Product): ProductFormState {
     price: String(product.price),
     compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "",
     inventory: String(product.inventory),
-    popularity: String(product.popularity),
     status: product.status,
     isNew: product.isNew,
     isFeatured: product.isFeatured,
@@ -98,6 +109,13 @@ function toFormState(product: Product): ProductFormState {
     images: productImages,
     sizes: productSizes,
     tags: productTags,
+    variantStocks: productVariantStocks.length
+      ? productVariantStocks.map((stock) => ({
+          ...stock,
+          inventory: String(stock.inventory),
+          price: stock.price !== undefined && stock.price !== null ? String(stock.price) : String(product.price),
+        }))
+      : fallbackVariantStocks,
     colorVariants: colorVariants.length
       ? colorVariants
       : [
@@ -133,18 +151,64 @@ function reorderItems<T>(items: T[], fromIndex: number, toIndex: number): T[] {
   return nextItems;
 }
 
+function variantStockKey(color: string, size: string): string {
+  return `${color.trim().toLowerCase()}::${size.trim().toLowerCase()}`;
+}
+
+function createVariantStockId(color: string, size: string): string {
+  return `stock-${variantStockKey(color, size).replace(/[^a-z0-9]+/g, "-")}`;
+}
+
+function buildVariantStocks(
+  colors: string[],
+  sizes: string[],
+  inventoryFallback: number,
+  priceFallback: string,
+  existing: EditableVariantStock[] = [],
+): EditableVariantStock[] {
+  const existingMap = new Map(existing.map((stock) => [variantStockKey(stock.color, stock.size), stock]));
+  const nextStocks: EditableVariantStock[] = [];
+
+  colors.forEach((color, colorIndex) => {
+    sizes.forEach((size, sizeIndex) => {
+      const key = variantStockKey(color, size);
+      const current = existingMap.get(key);
+      nextStocks.push(
+        current
+          ? {
+              ...current,
+              color,
+              size,
+            }
+          : {
+              id: createVariantStockId(color, size),
+              color,
+              size,
+              inventory: colorIndex === 0 && sizeIndex === 0 ? String(inventoryFallback) : "0",
+              price: priceFallback,
+            },
+      );
+    });
+  });
+
+  return nextStocks;
+}
+
 export default function AdminPage() {
   const { isLoaded, userId, getToken } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [categoryFlat, setCategoryFlat] = useState<AdminCategory[]>([]);
   const [categoryName, setCategoryName] = useState("");
   const [categorySlug, setCategorySlug] = useState("");
   const [categoryParentId, setCategoryParentId] = useState<string>("root");
+  const [categoryType, setCategoryType] = useState<"main" | "sub">("main");
   const [categoryOrder, setCategoryOrder] = useState("0");
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [savingCategory, setSavingCategory] = useState(false);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState<ProductFormState>(createEmptyForm());
@@ -158,8 +222,12 @@ export default function AdminPage() {
   const [orderQuery, setOrderQuery] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | OrderStatus>("all");
   const [subscriberQuery, setSubscriberQuery] = useState("");
+  const [contactQuery, setContactQuery] = useState("");
+  const [contacts, setContacts] = useState<AdminContact[]>([]);
+  const [userQuery, setUserQuery] = useState("");
+  const [savingUserId, setSavingUserId] = useState<string | null>(null);
   const [savingOrderId, setSavingOrderId] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<AdminSection>("catalog");
+  const [activeSection, setActiveSection] = useState<AdminSection>("overview");
 
   const categoryOptions = useMemo<Category[]>(() => {
     const dynamic = categoryFlat
@@ -192,6 +260,7 @@ export default function AdminPage() {
     setCategoryName("");
     setCategorySlug("");
     setCategoryParentId("root");
+    setCategoryType("main");
     setCategoryOrder("0");
   }
 
@@ -229,22 +298,28 @@ export default function AdminPage() {
     setLoading(true);
 
     try {
-      const [productsResponse, ordersResponse, subscribersResponse, categoriesResponse] = await Promise.all([
+      const [productsResponse, ordersResponse, subscribersResponse, categoriesResponse, usersResponse, contactsResponse] = await Promise.all([
         adminRequest("/api/admin/products"),
         adminRequest("/api/admin/orders"),
         adminRequest("/api/admin/subscribers"),
         adminRequest("/api/admin/categories"),
+        adminRequest("/api/admin/users"),
+        adminRequest("/api/admin/contacts"),
       ]);
-      const [productsData, ordersData, subscribersData, categoriesData] = await Promise.all([
+      const [productsData, ordersData, subscribersData, categoriesData, usersData, contactsData] = await Promise.all([
         parseResponse<Product[]>(productsResponse, "Unable to load products."),
         parseResponse<Order[]>(ordersResponse, "Unable to load orders."),
         parseResponse<Subscriber[]>(subscribersResponse, "Unable to load subscribers."),
         parseResponse<AdminCategoriesResponse>(categoriesResponse, "Unable to load categories."),
+        parseResponse<any[]>(usersResponse, "Unable to load users."),
+        parseResponse<AdminContact[]>(contactsResponse, "Unable to load contacts."),
       ]);
 
       setProducts(productsData);
       setOrders(ordersData);
       setSubscribers(subscribersData);
+      setUsers(usersData);
+      setContacts(Array.isArray(contactsData) ? contactsData : []);
       setCategoryFlat(Array.isArray(categoriesData.flat) ? categoriesData.flat : []);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to load admin data.");
@@ -271,6 +346,17 @@ export default function AdminPage() {
       setMessageTone("neutral");
 
       try {
+        const token = await getToken();
+        if (token) {
+          await fetch(buildBackendUrl("/api/auth/session"), {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+        }
+
         const meResponse = await adminRequest("/api/admin/me");
         await parseResponse<{ ok: boolean; userId: string }>(meResponse, "Unable to verify admin access.");
 
@@ -307,18 +393,6 @@ export default function AdminPage() {
     );
   }, [products, query]);
 
-  const stats = useMemo(
-    () => [
-      { label: "Total Products", value: products.length },
-      { label: "Active", value: products.filter((product) => product.status === "active").length },
-      { label: "Out Of Stock", value: products.filter((product) => product.inventory === 0).length },
-      { label: "Featured", value: products.filter((product) => product.isFeatured).length },
-      { label: "Orders", value: orders.length },
-      { label: "Subscribers", value: subscribers.length },
-    ],
-    [orders.length, products, subscribers.length],
-  );
-
   const filteredOrders = useMemo(() => {
     const normalizedQuery = orderQuery.trim().toLowerCase();
 
@@ -346,6 +420,48 @@ export default function AdminPage() {
       `${subscriber.email} ${subscriber.source}`.toLowerCase().includes(normalizedQuery),
     );
   }, [subscriberQuery, subscribers]);
+
+  const filteredContacts = useMemo(() => {
+    const normalized = contactQuery.trim().toLowerCase();
+    if (!normalized) return contacts;
+    return contacts.filter((c) =>
+      `${c.firstName} ${c.lastName} ${c.email} ${c.message}`.toLowerCase().includes(normalized),
+    );
+  }, [contactQuery, contacts]);
+
+  const filteredUsers = useMemo(() => {
+    const normalized = userQuery.trim().toLowerCase();
+    if (!normalized) return users;
+    return users.filter((u) => `${u.id} ${u.email || ""} ${u.firstName || ""} ${u.lastName || ""} ${u.role || ""}`.toLowerCase().includes(normalized));
+  }, [userQuery, users]);
+
+  async function updateUserRecord(userId: string, patch: { role?: string }) {
+    setSavingUserId(userId);
+    setMessage("");
+    setMessageTone("neutral");
+
+    try {
+      const response = await adminRequest(`/api/admin/users/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+
+      const data = await parseResponse<any>(response, "Unable to update user.");
+      setUsers((current) => current.map((u) => (u.id === userId ? data : u)));
+      setMessage(`User ${userId} updated.`);
+      setMessageTone("success");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to update user.");
+      setMessageTone("error");
+    } finally {
+      setSavingUserId(null);
+    }
+  }
+
+  async function saveUserRole(userId: string, role: string) {
+    await updateUserRecord(userId, { role });
+  }
 
   function openCreateModal() {
     setSelectedId(null);
@@ -388,8 +504,10 @@ export default function AdminPage() {
     setCategoryName(category.name);
     setCategorySlug(category.slug);
     setCategoryParentId(category.parentId || "root");
+    setCategoryType(category.parentId ? "sub" : "main");
     setCategoryOrder(String(category.order ?? 0));
     setActiveSection("categories");
+    setShowCategoryManager(true);
   }
 
   async function saveCategory(event: React.FormEvent<HTMLFormElement>) {
@@ -402,9 +520,13 @@ export default function AdminPage() {
       const payload = {
         name: categoryName,
         slug: categorySlug,
-        parentId: categoryParentId === "root" ? null : categoryParentId,
+        parentId: categoryType === "main" ? null : categoryParentId === "root" ? null : categoryParentId,
         order: Number(categoryOrder) || 0,
       };
+
+      if (categoryType === "sub" && payload.parentId === null) {
+        throw new Error("Choose a parent category for subcategories.");
+      }
 
       const response = await adminRequest(
         editingCategoryId ? `/api/admin/categories/${editingCategoryId}` : "/api/admin/categories",
@@ -455,11 +577,27 @@ export default function AdminPage() {
   function addSize(value: string) {
     const normalized = value.trim().toUpperCase();
     if (!normalized) return;
-    setForm((current) => ({ ...current, sizes: unique([...current.sizes, normalized]) }));
+    setForm((current) => {
+      const sizes = unique([...current.sizes, normalized]);
+      const colors = current.colorVariants.map((variant) => variant.name);
+      return {
+        ...current,
+        sizes,
+        variantStocks: buildVariantStocks(colors, sizes, Number(current.inventory || 0), current.price, current.variantStocks),
+      };
+    });
   }
 
   function removeSize(value: string) {
-    setForm((current) => ({ ...current, sizes: current.sizes.filter((size) => size !== value) }));
+    setForm((current) => {
+      const sizes = current.sizes.filter((size) => size !== value);
+      const colors = current.colorVariants.map((variant) => variant.name);
+      return {
+        ...current,
+        sizes,
+        variantStocks: buildVariantStocks(colors, sizes, Number(current.inventory || 0), current.price, current.variantStocks),
+      };
+    });
   }
 
   function addTag(value: string) {
@@ -472,7 +610,7 @@ export default function AdminPage() {
     setForm((current) => ({ ...current, tags: current.tags.filter((tag) => tag !== value) }));
   }
 
-  function addColorVariant(value: string) {
+  function addColorVariant(value: string, swatch?: string) {
     const name = value.trim();
     if (!name) return;
 
@@ -486,12 +624,23 @@ export default function AdminPage() {
       const variant: EditableColorVariant = {
         id: `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`,
         name,
-        swatch: getColorSwatchValue(name),
+        swatch: swatch?.trim() || getColorSwatchValue(name),
         image: fallbackImages[0] ?? "",
         images: fallbackImages,
       };
 
-      return { ...current, colorVariants: [...current.colorVariants, variant] };
+      const colorVariants = [...current.colorVariants, variant];
+      return {
+        ...current,
+        colorVariants,
+        variantStocks: buildVariantStocks(
+          colorVariants.map((item) => item.name),
+          current.sizes,
+          Number(current.inventory || 0),
+          current.price,
+          current.variantStocks,
+        ),
+      };
     });
   }
 
@@ -501,24 +650,73 @@ export default function AdminPage() {
         return current;
       }
 
-      return { ...current, colorVariants: current.colorVariants.filter((variant) => variant.id !== id) };
+      const colorVariants = current.colorVariants.filter((variant) => variant.id !== id);
+      return {
+        ...current,
+        colorVariants,
+        variantStocks: buildVariantStocks(
+          colorVariants.map((variant) => variant.name),
+          current.sizes,
+          Number(current.inventory || 0),
+          current.price,
+          current.variantStocks.filter((stock) => colorVariants.some((variant) => variant.name === stock.color)),
+        ),
+      };
     });
   }
 
   function updateColorVariant(id: string, patch: Partial<EditableColorVariant>) {
     setForm((current) => ({
       ...current,
-      colorVariants: current.colorVariants.map((variant) =>
-        variant.id === id
-          ? {
-              ...variant,
-              ...patch,
-              name: patch.name ?? variant.name,
-              swatch: patch.swatch ?? variant.swatch,
-            }
-          : variant,
+      colorVariants: current.colorVariants.map((variant) => {
+        if (variant.id !== id) return variant;
+
+        const nextName = patch.name ?? variant.name;
+        return {
+          ...variant,
+          ...patch,
+          name: nextName,
+          swatch: patch.swatch ?? variant.swatch,
+        };
+      }),
+      variantStocks: buildVariantStocks(
+        current.colorVariants.map((variant) => (variant.id === id ? patch.name ?? variant.name : variant.name)),
+        current.sizes,
+        Number(current.inventory || 0),
+        current.price,
+        current.variantStocks.map((stock) => {
+          const activeVariant = current.colorVariants.find((variant) => variant.id === id);
+          if (!activeVariant) return stock;
+          if (stock.color !== activeVariant.name) return stock;
+          return {
+            ...stock,
+            color: patch.name ?? activeVariant.name,
+          };
+        }),
       ),
     }));
+  }
+
+  function updateVariantStock(color: string, size: string, patch: { inventory?: string; price?: string }) {
+    setForm((current) => {
+      const colors = current.colorVariants.map((variant) => variant.name);
+      const sizes = current.sizes;
+      const stocks = buildVariantStocks(colors, sizes, Number(current.inventory || 0), current.price, current.variantStocks);
+      const key = variantStockKey(color, size);
+
+      return {
+        ...current,
+        variantStocks: stocks.map((stock) =>
+          variantStockKey(stock.color, stock.size) === key
+            ? {
+                ...stock,
+                inventory: patch.inventory ?? stock.inventory,
+                price: patch.price ?? stock.price ?? current.price,
+              }
+            : stock,
+        ),
+      };
+    });
   }
 
   function makeDefaultColorVariant(id: string) {
@@ -563,14 +761,14 @@ export default function AdminPage() {
     return data.urls;
   }
 
-  async function handleCoverUpload(files: FileList | null, cropFocus: CropFocus = "center") {
+  async function handleCoverUpload(files: FileList | null) {
     if (!files?.length) return;
     setUploading(true);
     setMessage("");
     setMessageTone("neutral");
 
     try {
-      const [url] = await uploadFiles(files, { preset: "cover", cropFocus });
+      const [url] = await uploadFiles(files, { preset: "cover" });
       setForm((current) => {
         const nextImages = current.images.length ? [...current.images] : [];
         if (nextImages.length === 0) nextImages.push(url);
@@ -820,18 +1018,6 @@ export default function AdminPage() {
     });
   }
 
-  function makeCoverImage(index: number) {
-    setForm((current) => {
-      const nextImages = [...current.images];
-      const [selectedImage] = nextImages.splice(index, 1);
-      nextImages.unshift(selectedImage);
-      const colorVariants = current.colorVariants.map((variant, variantIndex) =>
-        variantIndex === 0 ? { ...variant, image: selectedImage } : variant,
-      );
-      return { ...current, image: selectedImage, images: nextImages, colorVariants };
-    });
-  }
-
   function reorderGalleryImages(fromIndex: number, toIndex: number) {
     setForm((current) => {
       const nextImages = reorderItems(current.images, fromIndex, toIndex);
@@ -883,6 +1069,15 @@ export default function AdminPage() {
     setMessage("");
     setMessageTone("neutral");
 
+    const normalizedVariantStocks = buildVariantStocks(
+      form.colorVariants.map((variant) => variant.name),
+      form.sizes,
+      Number(form.inventory || 0),
+      form.price,
+      form.variantStocks,
+    );
+    const totalInventory = normalizedVariantStocks.reduce((total, stock) => total + Number(stock.inventory || 0), 0);
+
     const payload = {
       id: form.id,
       name: form.name,
@@ -892,8 +1087,6 @@ export default function AdminPage() {
       categoryPathSlugs: form.categoryPathSlugs,
       price: Number(form.price),
       compareAtPrice: form.compareAtPrice ? Number(form.compareAtPrice) : null,
-      inventory: Number(form.inventory),
-      popularity: Number(form.popularity),
       status: form.status,
       isNew: form.isNew,
       isFeatured: form.isFeatured,
@@ -905,6 +1098,8 @@ export default function AdminPage() {
       colors: form.colorVariants.map((variant) => variant.name),
       colorVariants: form.colorVariants,
       sizes: form.sizes,
+      variantStocks: normalizedVariantStocks,
+      inventory: totalInventory,
       tags: form.tags,
     };
 
@@ -923,6 +1118,7 @@ export default function AdminPage() {
       await loadData();
       setMessage(selectedId ? "Product updated." : "Product created.");
       setMessageTone("success");
+      setIsModalOpen(false);
 
       if (data.id) {
         setSelectedId(data.id);
@@ -1026,7 +1222,7 @@ export default function AdminPage() {
 
   if (!isLoaded) {
     return (
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-16 md:px-8">
+      <main className="mx-auto w-full max-w-300 px-4 py-16 md:px-8">
         <p className="text-sm text-[#222222]">Checking session...</p>
       </main>
     );
@@ -1034,7 +1230,7 @@ export default function AdminPage() {
 
   if (!userId) {
     return (
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-16 md:px-8">
+      <main className="mx-auto w-full max-w-300 px-4 py-16 md:px-8">
         <p className="text-sm text-[#222222]">Sign in to access the admin panel.</p>
       </main>
     );
@@ -1042,14 +1238,14 @@ export default function AdminPage() {
 
   if (hasAdminAccess === false) {
     return (
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-16 md:px-8">
+      <main className="mx-auto w-full max-w-300 px-4 py-16 md:px-8">
         <p className="text-sm text-red-700">You do not have admin access for this panel.</p>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:py-10 md:px-8 md:py-14">
+    <main className="mx-auto w-full max-w-400 px-4 py-8 sm:py-10 md:px-8 md:py-14">
       <header className="mb-8 flex flex-col gap-4 border-b border-neutral-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Admin Console</p>
@@ -1068,15 +1264,6 @@ export default function AdminPage() {
         </button>
       </header>
 
-      <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-        {stats.map((stat) => (
-          <article key={stat.label} className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">{stat.label}</p>
-            <p className="mt-3 font-heading text-3xl text-[#111111] sm:text-4xl">{stat.value}</p>
-          </article>
-        ))}
-      </section>
-
       {message ? (
         <section
           aria-live="polite"
@@ -1092,54 +1279,46 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      <section className="mb-8 rounded-2xl border border-neutral-200 bg-white p-2 sm:p-3">
-        <div className="grid gap-2 sm:grid-cols-4">
-          <button
-            type="button"
-            onClick={() => setActiveSection("catalog")}
-            className={`px-4 py-3 text-xs uppercase tracking-[0.18em] transition ${
-              activeSection === "catalog"
-                ? "bg-[#111111] text-white"
-                : "text-[#111111] hover:bg-neutral-100"
-            }`}
-          >
-            Catalog
+      <section className="mb-8 rounded-2xl border border-neutral-200 bg-white p-3 sm:p-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <button type="button" onClick={() => setActiveSection("overview")} className={`rounded-xl border px-4 py-4 text-left transition ${activeSection === "overview" ? "border-[#111111] bg-[#111111] text-white" : "border-neutral-200 text-[#111111] hover:border-[#111111]"}`}>
+            <p className="text-[11px] uppercase tracking-[0.18em]">Overview</p>
+            <p className="mt-2 text-sm text-inherit">Navigation only.</p>
           </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection("orders")}
-            className={`px-4 py-3 text-xs uppercase tracking-[0.18em] transition ${
-              activeSection === "orders"
-                ? "bg-[#111111] text-white"
-                : "text-[#111111] hover:bg-neutral-100"
-            }`}
-          >
-            Orders
+          <button type="button" onClick={() => setActiveSection("catalog")} className={`rounded-xl border px-4 py-4 text-left transition ${activeSection === "catalog" ? "border-[#111111] bg-[#111111] text-white" : "border-neutral-200 text-[#111111] hover:border-[#111111]"}`}>
+            <p className="text-[11px] uppercase tracking-[0.18em]">Catalog</p>
+            <p className="mt-2 text-sm text-inherit">Products and quick actions.</p>
           </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection("categories")}
-            className={`px-4 py-3 text-xs uppercase tracking-[0.18em] transition ${
-              activeSection === "categories"
-                ? "bg-[#111111] text-white"
-                : "text-[#111111] hover:bg-neutral-100"
-            }`}
-          >
-            Categories
+          <button type="button" onClick={() => setActiveSection("orders")} className={`rounded-xl border px-4 py-4 text-left transition ${activeSection === "orders" ? "border-[#111111] bg-[#111111] text-white" : "border-neutral-200 text-[#111111] hover:border-[#111111]"}`}>
+            <p className="text-[11px] uppercase tracking-[0.18em]">Orders</p>
+            <p className="mt-2 text-sm text-inherit">Status and tracking.</p>
           </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection("subscribers")}
-            className={`px-4 py-3 text-xs uppercase tracking-[0.18em] transition ${
-              activeSection === "subscribers"
-                ? "bg-[#111111] text-white"
-                : "text-[#111111] hover:bg-neutral-100"
-            }`}
-          >
-            Subscribers
+          <button type="button" onClick={() => setActiveSection("categories")} className={`rounded-xl border px-4 py-4 text-left transition ${activeSection === "categories" ? "border-[#111111] bg-[#111111] text-white" : "border-neutral-200 text-[#111111] hover:border-[#111111]"}`}>
+            <p className="text-[11px] uppercase tracking-[0.18em]">Categories</p>
+            <p className="mt-2 text-sm text-inherit">Main and subcategories.</p>
+          </button>
+          <button type="button" onClick={() => setActiveSection("subscribers")} className={`rounded-xl border px-4 py-4 text-left transition ${activeSection === "subscribers" ? "border-[#111111] bg-[#111111] text-white" : "border-neutral-200 text-[#111111] hover:border-[#111111]"}`}>
+            <p className="text-[11px] uppercase tracking-[0.18em]">Subscribers</p>
+            <p className="mt-2 text-sm text-inherit">Newsletter signups.</p>
+          </button>
+          <button type="button" onClick={() => setActiveSection("users")} className={`rounded-xl border px-4 py-4 text-left transition ${activeSection === "users" ? "border-[#111111] bg-[#111111] text-white" : "border-neutral-200 text-[#111111] hover:border-[#111111]"}`}>
+            <p className="text-[11px] uppercase tracking-[0.18em]">Users</p>
+            <p className="mt-2 text-sm text-inherit">Roles and access.</p>
+          </button>
+          <button type="button" onClick={() => setActiveSection("contacts")} className={`rounded-xl border px-4 py-4 text-left transition ${activeSection === "contacts" ? "border-[#111111] bg-[#111111] text-white" : "border-neutral-200 text-[#111111] hover:border-[#111111]"}`}>
+            <p className="text-[11px] uppercase tracking-[0.18em]">Contacts</p>
+            <p className="mt-2 text-sm text-inherit">Customer messages.</p>
           </button>
         </div>
       </section>
+
+      {activeSection === "overview" ? (
+        <section className="rounded-2xl border border-dashed border-neutral-300 bg-white p-8 text-center">
+          <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Admin Overview</p>
+          <h2 className="mt-3 font-heading text-3xl text-[#111111]">Choose a pane</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#222222]">This screen stays empty on purpose. Use the tiles above to jump into one area at a time.</p>
+        </section>
+      ) : null}
 
       {activeSection === "catalog" ? (
         <section className="mb-8 rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5">
@@ -1163,11 +1342,11 @@ export default function AdminPage() {
       ) : null}
 
       {activeSection === "catalog" && !loading ? (
-        <section className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
+        <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
           {filteredProducts.map((product) => (
             <article key={product.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
               <button type="button" onClick={() => openEditModal(product)} className="block w-full text-left">
-                <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+                <div className="relative aspect-4/5 max-h-64 overflow-hidden bg-neutral-100 md:h-44">
                   {product.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
@@ -1190,15 +1369,15 @@ export default function AdminPage() {
                   </div>
                 </div>
               </button>
-              <div className="space-y-4 p-4 sm:p-5">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">
+              <div className="space-y-3 p-4 sm:p-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-neutral-500">
                     {product.category} • {product.sku}
                   </p>
-                  <h2 className="mt-2 text-base uppercase tracking-[0.12em] text-[#111111]">
+                  <h2 className="text-sm uppercase tracking-[0.12em] text-[#111111] line-clamp-1">
                     {product.name}
                   </h2>
-                  <p className="mt-2 text-sm text-[#222222]">
+                  <p className="text-xs text-[#222222]">
                     {formatPrice(product.price)} • {product.inventory} in stock
                   </p>
                 </div>
@@ -1206,35 +1385,35 @@ export default function AdminPage() {
                   <button
                     type="button"
                     onClick={() => openEditModal(product)}
-                    className="border border-[#111111] px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-[#111111] hover:bg-[#111111] hover:text-white"
+                    className="border border-[#111111] px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[#111111] hover:bg-[#111111] hover:text-white"
                   >
                     Edit Product
                   </button>
                   <button
                     type="button"
                     onClick={() => void applyQuickUpdate(product, { inventory: product.inventory === 0 ? 12 : 0 })}
-                    className="border border-neutral-300 px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]"
+                    className="border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[#111111] hover:border-[#111111]"
                   >
                     {product.inventory === 0 ? "Restock" : "Sold Out"}
                   </button>
                   <button
                     type="button"
                     onClick={() => void applyQuickUpdate(product, { isFeatured: !product.isFeatured })}
-                    className="border border-neutral-300 px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]"
+                    className="border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[#111111] hover:border-[#111111]"
                   >
                     {product.isFeatured ? "Unfeature" : "Feature"}
                   </button>
                   <button
                     type="button"
                     onClick={() => duplicateProduct(product)}
-                    className="border border-neutral-300 px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]"
+                    className="border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[#111111] hover:border-[#111111]"
                   >
                     Duplicate
                   </button>
                   <button
                     type="button"
                     onClick={() => void handleDelete(product.id)}
-                    className="border border-red-300 px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-red-600 hover:border-red-600"
+                    className="border border-red-300 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-red-600 hover:border-red-600"
                   >
                     Delete
                   </button>
@@ -1304,7 +1483,7 @@ export default function AdminPage() {
                             void updateOrderRecord(order.id, { status: event.target.value as OrderStatus })
                           }
                           disabled={savingOrderId === order.id}
-                          className="h-10 w-full border border-neutral-300 px-3 text-sm outline-none focus:border-[#111111] sm:min-w-[180px]"
+                          className="h-10 w-full border border-neutral-300 px-3 text-sm outline-none focus:border-[#111111] sm:min-w-45"
                         >
                           {orderStatusOptions.map((status) => (
                             <option key={status} value={status}>
@@ -1418,14 +1597,29 @@ export default function AdminPage() {
       ) : null}
 
       {activeSection === "categories" ? (
-        <section className="mt-10 grid gap-6 lg:grid-cols-[360px,1fr]">
+        <section className="mt-10 space-y-6">
           <div className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Category Editor</p>
-            <h2 className="mt-2 font-heading text-2xl text-[#111111]">
-              {editingCategoryId ? "Edit Category" : "Create Category"}
-            </h2>
-            <form onSubmit={saveCategory} className="mt-4 space-y-4">
-              <label className="space-y-2">
+            <div className="flex flex-col gap-4 border-b border-neutral-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Category Editor</p>
+                <h2 className="mt-2 font-heading text-2xl text-[#111111]">
+                  {editingCategoryId ? "Edit Category" : "Create Category"}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm text-[#222222]">
+                  Keep the full category tree tucked away and open the manager only when you need to organize main categories and subcategories.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCategoryManager((current) => !current)}
+                className="border border-[#111111] bg-[#111111] px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-white hover:bg-white hover:text-[#111111]"
+              >
+                {showCategoryManager ? "Hide Manager" : "Manage Categories"}
+              </button>
+            </div>
+
+            <form onSubmit={saveCategory} className="mt-4 grid gap-4 lg:grid-cols-2">
+              <label className="space-y-2 lg:col-span-2">
                 <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Name</span>
                 <input
                   value={categoryName}
@@ -1434,7 +1628,7 @@ export default function AdminPage() {
                   className="h-10 w-full border border-neutral-300 px-3 text-sm outline-none focus:border-[#111111]"
                 />
               </label>
-              <label className="space-y-2">
+              <label className="space-y-2 lg:col-span-2">
                 <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Slug (optional)</span>
                 <input
                   value={categorySlug}
@@ -1443,18 +1637,21 @@ export default function AdminPage() {
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Parent</span>
+                <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Type</span>
                 <select
-                  value={categoryParentId}
-                  onChange={(event) => setCategoryParentId(event.target.value)}
+                  value={categoryType}
+                  onChange={(event) => {
+                    const nextType = event.target.value as "main" | "sub";
+                    setCategoryType(nextType);
+                    if (nextType === "main") {
+                      setCategoryParentId("root");
+                    }
+                    setShowCategoryManager(true);
+                  }}
                   className="h-10 w-full border border-neutral-300 px-3 text-sm outline-none focus:border-[#111111]"
                 >
-                  <option value="root">Main Category (No Parent)</option>
-                  {categoryFlat.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {"- ".repeat(category.depth)}{category.name}
-                    </option>
-                  ))}
+                  <option value="main">Main Category</option>
+                  <option value="sub">Subcategory</option>
                 </select>
               </label>
               <label className="space-y-2">
@@ -1466,7 +1663,28 @@ export default function AdminPage() {
                   className="h-10 w-full border border-neutral-300 px-3 text-sm outline-none focus:border-[#111111]"
                 />
               </label>
-              <div className="flex flex-wrap gap-2">
+              {categoryType === "sub" ? (
+                <label className="space-y-2 lg:col-span-2">
+                  <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Parent Category</span>
+                  <select
+                    value={categoryParentId}
+                    onChange={(event) => setCategoryParentId(event.target.value)}
+                    className="h-10 w-full border border-neutral-300 px-3 text-sm outline-none focus:border-[#111111]"
+                  >
+                    <option value="root" disabled>
+                      Choose a parent category
+                    </option>
+                    {categoryFlat
+                      .filter((category) => category.depth === 0)
+                      .map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+              ) : null}
+              <div className="flex flex-wrap gap-2 lg:col-span-2">
                 <button
                   type="submit"
                   disabled={savingCategory}
@@ -1487,44 +1705,58 @@ export default function AdminPage() {
             </form>
           </div>
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5">
-            <div className="mb-4 border-b border-neutral-200 pb-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Category Tree</p>
-              <h2 className="mt-2 font-heading text-2xl text-[#111111]">Manage Main Categories & Subcategories</h2>
-            </div>
-            {categoryFlat.length === 0 ? (
-              <p className="text-sm text-[#222222]">No categories yet. Create your first main category.</p>
-            ) : (
-              <div className="space-y-3">
-                {categoryFlat.map((category) => (
-                  <article key={category.id} className="rounded-xl border border-neutral-200 p-3">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">{category.pathLabels.join(" / ")}</p>
-                        <p className="mt-1 text-sm text-[#111111]">Slug: {category.slug}</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => startEditCategory(category)}
-                          className="border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void handleDeleteCategory(category)}
-                          className="border border-red-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-red-600 hover:border-red-600"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
+          {showCategoryManager ? (
+            <div className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5">
+              <div className="mb-4 border-b border-neutral-200 pb-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Category Manager</p>
+                <h2 className="mt-2 font-heading text-2xl text-[#111111]">Manage Main Categories & Subcategories</h2>
               </div>
-            )}
-          </div>
+              {categoryFlat.length === 0 ? (
+                <p className="text-sm text-[#222222]">No categories yet. Create your first main category.</p>
+              ) : (
+                <div className="space-y-3">
+                  {categoryFlat.map((category) => (
+                    <article key={category.id} className="rounded-xl border border-neutral-200 p-3">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">{category.pathLabels.join(" / ")}</p>
+                          <p className="mt-1 text-sm text-[#111111]">Slug: {category.slug}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => startEditCategory(category)}
+                            className="border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleDeleteCategory(category)}
+                            className="border border-red-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-red-600 hover:border-red-600"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-center">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Category Manager</p>
+              <p className="mt-2 text-sm text-[#222222]">The category tree is hidden until you open the manager.</p>
+              <button
+                type="button"
+                onClick={() => setShowCategoryManager(true)}
+                className="mt-4 border border-[#111111] bg-[#111111] px-4 py-2 text-[11px] uppercase tracking-[0.16em] text-white hover:bg-white hover:text-[#111111]"
+              >
+                Manage Categories
+              </button>
+            </div>
+          )}
         </section>
       ) : null}
 
@@ -1575,6 +1807,8 @@ export default function AdminPage() {
         uploading={uploading}
         categoryOptions={categoryOptions}
         categoryPathOptions={categoryPathOptions}
+        colorVariants={form.colorVariants}
+        variantStocks={form.variantStocks}
         onClose={closeModal}
         onSubmit={handleSubmit}
         updateForm={updateForm}
@@ -1586,18 +1820,131 @@ export default function AdminPage() {
         removeColorVariant={removeColorVariant}
         updateColorVariant={updateColorVariant}
         makeDefaultColorVariant={makeDefaultColorVariant}
-        handleCoverUpload={handleCoverUpload}
-        handleGalleryAppend={handleGalleryAppend}
-        handleGalleryReplace={handleGalleryReplace}
-        removeGalleryImage={removeGalleryImage}
-        makeCoverImage={makeCoverImage}
-        reorderGalleryImages={reorderGalleryImages}
         handleColorImageUpload={handleColorImageUpload}
         handleColorGalleryAppend={handleColorGalleryAppend}
         handleColorGalleryReplace={handleColorGalleryReplace}
         removeColorGalleryImage={removeColorGalleryImage}
         reorderColorGalleryImages={reorderColorGalleryImages}
+        updateVariantStock={updateVariantStock}
       />
+      {activeSection === "users" ? (
+        <section className="mt-10">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-6">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 pb-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Users</p>
+                <h2 className="mt-2 font-heading text-3xl text-[#111111]">User Management</h2>
+              </div>
+              <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">{filteredUsers.length} visible</span>
+            </div>
+
+            <div className="mb-5 grid gap-3 lg:grid-cols-[1fr,220px]">
+              <input
+                value={userQuery}
+                onChange={(event) => setUserQuery(event.target.value)}
+                placeholder="Search by id, email, name, or role..."
+                className="h-11 border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]"
+              />
+              <div className="flex items-center justify-end text-[11px] uppercase tracking-[0.16em] text-neutral-500">
+                {users.length} total
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {filteredUsers.length === 0 ? (
+                <p className="text-sm text-[#222222]">No users found.</p>
+              ) : (
+                filteredUsers.map((user) => (
+                  <article key={user.id} className="rounded-2xl border border-neutral-200 p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-[#111111]">{user.email ?? `${user.firstName || ""} ${user.lastName || ""}`}</p>
+                        <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-neutral-500">{user.id}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <select
+                          value={user.role || "customer"}
+                          onChange={(e) => {
+                            const nextRole = e.target.value;
+                            setUsers((cur) => cur.map((u) => (u.id === user.id ? { ...u, role: nextRole } : u)));
+                            void saveUserRole(user.id, nextRole);
+                          }}
+                          className="h-10 border border-neutral-300 px-3 text-sm outline-none focus:border-[#111111]"
+                        >
+                          <option value="customer">customer</option>
+                          <option value="admin">admin</option>
+                        </select>
+                        <span className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">
+                          {savingUserId === user.id ? "Saving..." : "Auto-save"}
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {activeSection === "contacts" ? (
+        <section className="mt-10">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-4 sm:p-6">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 pb-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Contact Submissions</p>
+                <h2 className="mt-2 font-heading text-3xl text-[#111111]">Messages</h2>
+              </div>
+              <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">{contacts.length} total</span>
+            </div>
+
+            <div className="mb-5">
+              <input
+                value={contactQuery}
+                onChange={(event) => setContactQuery(event.target.value)}
+                placeholder="Search by name, email or message..."
+                className="h-11 w-full border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]"
+              />
+            </div>
+
+            <div className="space-y-4">
+              {filteredContacts.length === 0 ? (
+                <p className="text-sm text-[#222222]">No contact submissions yet.</p>
+              ) : (
+                filteredContacts.map((contact) => (
+                  <article key={contact.id} className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-3 mb-1">
+                          <p className="font-medium text-sm text-[#111111]">
+                            {contact.firstName} {contact.lastName}
+                          </p>
+                          <a
+                            href={`mailto:${contact.email}`}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            {contact.email}
+                          </a>
+                        </div>
+                        <p className="text-sm text-[#444444] leading-relaxed whitespace-pre-line">{contact.message}</p>
+                      </div>
+                      <time className="shrink-0 text-[11px] uppercase tracking-[0.12em] text-neutral-400">
+                        {new Date(contact.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </time>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

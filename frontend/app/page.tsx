@@ -42,7 +42,7 @@ export default async function Home() {
       </section>
 
       {/* 2. Featured Categories (Grid) */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-360 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
           {[
             { title: "Outerwear", img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=800&auto=format&fit=crop", link: "/products" },
@@ -62,7 +62,7 @@ export default async function Home() {
       </section>
 
       {/* 3. New Arrivals Horizontal Carousel */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
+      <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-360 mx-auto">
         <div className="flex justify-between items-end mb-10">
           <h2 className="text-2xl font-bold uppercase tracking-tight text-black">New Arrivals</h2>
           <Link href="/new-arrivals" className="text-sm font-medium uppercase tracking-widest text-black underline underline-offset-4 hover:text-gray-500 transition-colors">
@@ -116,7 +116,7 @@ export default async function Home() {
       </section>
 
       {/* 5. Best Sellers */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto bg-gray-50 mt-12 mb-12">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-360 mx-auto bg-gray-50 mt-12 mb-12">
         <div className="text-center mb-16">
           <h2 className="text-2xl font-bold uppercase tracking-tight text-black">Most Wanted</h2>
           <p className="text-sm text-gray-500 mt-4 uppercase tracking-widest">Our best selling pieces right now</p>
@@ -148,7 +148,7 @@ export default async function Home() {
       </section>
 
       {/* 6. Instagram/Social Grid */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
+      <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-360 mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-xl font-bold uppercase tracking-tight text-black">@FASSION4ASIAN</h2>
         </div>

@@ -20,7 +20,7 @@ export default async function NewArrivalsPage() {
         </h1>
       </section>
 
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-360 mx-auto">
         {arrivals.length === 0 ? (
           <div className="py-20 text-center text-gray-500 uppercase tracking-widest text-sm">
             No new arrivals right now.

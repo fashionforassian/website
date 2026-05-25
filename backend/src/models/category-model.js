@@ -1,5 +1,13 @@
 const { getCollection } = require("../config/db");
 
+const DEFAULT_ROOT_CATEGORIES = [
+  { id: "cat_men", name: "Men", slug: "men", order: 0 },
+  { id: "cat_women", name: "Women", slug: "women", order: 1 },
+  { id: "cat_kids", name: "Kids", slug: "kids", order: 2 },
+  { id: "cat_accessories", name: "Accessories", slug: "accessories", order: 3 },
+  { id: "cat_footwear", name: "Footwear", slug: "footwear", order: 4 },
+];
+
 function slugify(value) {
   return String(value || "")
     .toLowerCase()
@@ -93,6 +101,27 @@ async function listCategoriesRaw() {
   return collection.find({}, { projection: { _id: 0 } }).toArray();
 }
 
+async function seedDefaultCategories() {
+  const collection = await getCollection("categories");
+  const count = await collection.countDocuments();
+
+  if (count > 0) {
+    return false;
+  }
+
+  const now = new Date().toISOString();
+  await collection.insertMany(
+    DEFAULT_ROOT_CATEGORIES.map((category) => ({
+      ...category,
+      parentId: null,
+      createdAt: now,
+      updatedAt: now,
+    })),
+  );
+
+  return true;
+}
+
 async function listCategoriesWithPaths() {
   const categories = await listCategoriesRaw();
   return buildPathLookup(categories);
@@ -164,6 +193,7 @@ module.exports = {
   slugify,
   buildCategoryTree,
   listCategoriesRaw,
+  seedDefaultCategories,
   listCategoriesWithPaths,
   listCategoryTree,
   getCategoryById,

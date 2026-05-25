@@ -1,87 +1,362 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/components/providers/CartProvider";
+import { buildBackendUrl } from "@/lib/backend-api";
 import { formatPrice } from "@/lib/data";
 
+type CheckoutFormState = {
+  customerName: string;
+  customerEmail: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+};
+
+type RazorpayCheckoutResponse = {
+  keyId: string;
+  sessionId: string;
+  razorpayOrderId: string;
+  amount: number;
+  currency: string;
+  subtotal: number;
+  shipping: number;
+  total: number;
+};
+
+type RazorpaySuccessPayload = {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+};
+
+type RazorpayInstance = {
+  open: () => void;
+  on: (event: "payment.failed", handler: (response: { error?: { description?: string } }) => void) => void;
+};
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => RazorpayInstance;
+  }
+}
+
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") {
+      resolve(false);
+      return;
+    }
+
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[src="https://checkout.razorpay.com/v1/checkout.js"]',
+    );
+
+    if (existing) {
+      existing.addEventListener("load", () => resolve(true), { once: true });
+      existing.addEventListener("error", () => resolve(false), { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 export default function CheckoutPage() {
-  const { items, subtotal } = useCart();
-  const [shippingMethod, setShippingMethod] = useState("standard");
-  const shippingCost = shippingMethod === "express" ? 15 : 0;
+  const router = useRouter();
+  const { items, subtotal, clearCart } = useCart();
+  const [mounted, setMounted] = useState(false);
+  // single shipping method: standard
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"neutral" | "success" | "error">("neutral");
+  const [form, setForm] = useState<CheckoutFormState>({
+    customerName: "",
+    customerEmail: "",
+    phone: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "India",
+  });
+
+  const shippingCost = 0;
   const total = subtotal + shippingCost;
 
-  if (items.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-center px-4">
-        <div>
-          <h1 className="text-2xl font-bold uppercase tracking-tight mb-4">Checkout is unavailable</h1>
-          <p className="text-gray-500 mb-8">Your cart is empty.</p>
-          <Link href="/products" className="bg-black text-white px-8 py-3 text-sm font-bold uppercase tracking-widest hover:bg-gray-900">
-            Return to Shop
-          </Link>
-        </div>
-      </div>
-    );
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (items.length === 0) {
+      setMessage("");
+      setMessageTone("neutral");
+    }
+  }, [items.length]);
+
+  function updateField(field: keyof CheckoutFormState, value: string) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  async function confirmPayment(payload: RazorpaySuccessPayload) {
+    const response = await fetch(buildBackendUrl("/api/orders/confirm"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        razorpayOrderId: payload.razorpay_order_id,
+        razorpayPaymentId: payload.razorpay_payment_id,
+        razorpaySignature: payload.razorpay_signature,
+      }),
+    });
+
+    const data = (await response.json()) as { id?: string; message?: string };
+
+    if (!response.ok) {
+      throw new Error(data.message || "Unable to confirm payment.");
+    }
+
+    return data;
+  }
+
+  async function handlePlaceOrder() {
+    if (!items.length) {
+      return;
+    }
+
+    if (!form.customerName.trim() || !form.customerEmail.trim()) {
+      setMessage("Customer name and email are required.");
+      setMessageTone("error");
+      return;
+    }
+
+    if (!form.addressLine1.trim() || !form.city.trim() || !form.state.trim() || !form.postalCode.trim()) {
+      setMessage("Please complete the shipping address.");
+      setMessageTone("error");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage("");
+    setMessageTone("neutral");
+
+    try {
+      const response = await fetch(buildBackendUrl("/api/checkout/razorpay/order"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customerName: form.customerName,
+          customerEmail: form.customerEmail,
+          phone: form.phone,
+          items,
+          shippingMethod: "standard",
+          shippingAddress: {
+            addressLine1: form.addressLine1,
+            addressLine2: form.addressLine2,
+            city: form.city,
+            state: form.state,
+            postalCode: form.postalCode,
+            country: form.country,
+            phone: form.phone,
+          },
+        }),
+      });
+
+      const payload = (await response.json()) as RazorpayCheckoutResponse & { message?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.message || "Unable to start payment.");
+      }
+
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded || !window.Razorpay) {
+        throw new Error("Unable to load Razorpay checkout.");
+      }
+
+      const razorpay = new window.Razorpay({
+        key: payload.keyId,
+        amount: payload.amount,
+        currency: payload.currency,
+        name: "Fassion 4 Asian",
+        description: "Order payment",
+        order_id: payload.razorpayOrderId,
+        prefill: {
+          name: form.customerName,
+          email: form.customerEmail,
+          contact: form.phone,
+        },
+        theme: {
+          color: "#111111",
+        },
+        handler: async (paymentResponse: RazorpaySuccessPayload) => {
+          try {
+            const createdOrder = await confirmPayment(paymentResponse);
+            if (!createdOrder.id) {
+              throw new Error("Payment succeeded, but the order confirmation response was incomplete.");
+            }
+            clearCart();
+            router.replace(`/checkout/success?orderId=${encodeURIComponent(createdOrder.id)}`);
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Payment confirmation failed.");
+            setMessageTone("error");
+          } finally {
+            setIsSubmitting(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setIsSubmitting(false);
+          },
+        },
+      });
+
+      razorpay.on("payment.failed", (paymentError) => {
+        setMessage(paymentError.error?.description || "Payment failed. Please try again.");
+        setMessageTone("error");
+        setIsSubmitting(false);
+      });
+
+      razorpay.open();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to start payment.");
+      setMessageTone("error");
+    }
+  }
+
+  // Avoid rendering cart-dependent UI on the server to prevent hydration mismatches.
+  // Render a neutral placeholder both on server and initial client render,
+  // then show the full checkout UI after the component mounts on the client.
+  if (!mounted) {
+    return <div className="min-h-screen bg-white" />;
   }
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div className="max-w-300 mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <h1 className="text-3xl font-bold uppercase tracking-tight text-black mb-12 border-b border-gray-200 pb-6">Checkout</h1>
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
-          
-          {/* Left Column: Forms */}
-          <div className="lg:col-span-7 space-y-12">
-            
-            {/* Express Checkout */}
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-black mb-6 text-center">Express Checkout</h2>
-              <div className="flex gap-4 justify-center">
-                <button className="flex-1 bg-black text-white h-12 flex items-center justify-center rounded-sm hover:opacity-90">
-                  <span className="font-semibold">Pay</span>
-                </button>
-                <button className="flex-1 bg-[#FFC439] text-black h-12 flex items-center justify-center rounded-sm hover:opacity-90 font-bold italic">
-                  PayPal
-                </button>
-              </div>
-              <div className="relative flex items-center py-8">
-                <div className="flex-grow border-t border-gray-200"></div>
-                <span className="flex-shrink-0 mx-4 text-xs text-gray-400 uppercase tracking-widest">Or continue below</span>
-                <div className="flex-grow border-t border-gray-200"></div>
-              </div>
-            </div>
 
-            {/* Contact & Shipping */}
-            <form className="space-y-10" onSubmit={(e) => e.preventDefault()}>
+        {message ? (
+          <div
+            className={`mb-8 rounded-sm border px-4 py-3 text-sm ${
+              messageTone === "success"
+                ? "border-green-200 bg-green-50 text-green-800"
+                : messageTone === "error"
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-neutral-200 bg-neutral-50 text-neutral-700"
+            }`}
+          >
+            {message}
+          </div>
+        ) : null}
+
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
+          <div className="lg:col-span-7 space-y-12">
+            {/* Express checkout removed */}
+
+            <form
+              className="space-y-10"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handlePlaceOrder();
+              }}
+            >
               <div>
                 <h2 className="text-lg font-medium text-black mb-6">Contact</h2>
-                <input type="email" placeholder="Email or mobile phone number" className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors" />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <input
+                    type="text"
+                    placeholder="Full name"
+                    value={form.customerName}
+                    onChange={(event) => updateField("customerName", event.target.value)}
+                    className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email address"
+                    value={form.customerEmail}
+                    onChange={(event) => updateField("customerEmail", event.target.value)}
+                    className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors"
+                  />
+                </div>
+                <input
+                  type="tel"
+                  placeholder="Phone number (optional)"
+                  value={form.phone}
+                  onChange={(event) => updateField("phone", event.target.value)}
+                  className="mt-4 w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors"
+                />
               </div>
 
               <div>
                 <h2 className="text-lg font-medium text-black mb-6">Delivery</h2>
                 <div className="space-y-4">
-                  <select className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors bg-white appearance-none">
+                  <select className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors bg-white appearance-none" value={form.country} onChange={(event) => updateField("country", event.target.value)}>
+                    <option>India</option>
                     <option>United States</option>
                     <option>United Kingdom</option>
                     <option>Canada</option>
                     <option>Australia</option>
                   </select>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <input type="text" placeholder="First name" className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors" />
-                    <input type="text" placeholder="Last name" className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors" />
-                  </div>
-                  
-                  <input type="text" placeholder="Address" className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors" />
-                  <input type="text" placeholder="Apartment, suite, etc. (optional)" className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors" />
-                  
+
+                  <input
+                    type="text"
+                    placeholder="Address"
+                    value={form.addressLine1}
+                    onChange={(event) => updateField("addressLine1", event.target.value)}
+                    className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Apartment, suite, etc. (optional)"
+                    value={form.addressLine2}
+                    onChange={(event) => updateField("addressLine2", event.target.value)}
+                    className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors"
+                  />
+
                   <div className="grid grid-cols-3 gap-4">
-                    <input type="text" placeholder="City" className="col-span-1 w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors" />
-                    <input type="text" placeholder="State" className="col-span-1 w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors" />
-                    <input type="text" placeholder="ZIP code" className="col-span-1 w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors" />
+                    <input
+                      type="text"
+                      placeholder="City"
+                      value={form.city}
+                      onChange={(event) => updateField("city", event.target.value)}
+                      className="col-span-1 w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors"
+                    />
+                    <input
+                      type="text"
+                      placeholder="State"
+                      value={form.state}
+                      onChange={(event) => updateField("state", event.target.value)}
+                      className="col-span-1 w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors"
+                    />
+                    <input
+                      type="text"
+                      placeholder="ZIP code"
+                      value={form.postalCode}
+                      onChange={(event) => updateField("postalCode", event.target.value)}
+                      className="col-span-1 w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors"
+                    />
                   </div>
                 </div>
               </div>
@@ -89,41 +364,31 @@ export default function CheckoutPage() {
               <div>
                 <h2 className="text-lg font-medium text-black mb-6">Shipping method</h2>
                 <div className="border border-gray-300 rounded-sm">
-                  <label className="flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50">
+                  <div className="flex items-center justify-between p-4 border-b border-gray-200">
                     <div className="flex items-center gap-3">
-                      <input type="radio" name="shipping" checked={shippingMethod === "standard"} onChange={() => setShippingMethod("standard")} className="w-4 h-4 text-black accent-black" />
+                      <span className="w-4 h-4 inline-block rounded-full border border-neutral-300 bg-white" />
                       <span className="text-sm">Standard Shipping (3-5 business days)</span>
                     </div>
                     <span className="text-sm font-medium">Free</span>
-                  </label>
-                  <label className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50">
-                    <div className="flex items-center gap-3">
-                      <input type="radio" name="shipping" checked={shippingMethod === "express"} onChange={() => setShippingMethod("express")} className="w-4 h-4 text-black accent-black" />
-                      <span className="text-sm">Express Shipping (1-2 business days)</span>
-                    </div>
-                    <span className="text-sm font-medium">$15.00</span>
-                  </label>
+                  </div>
                 </div>
               </div>
 
               <div>
                 <h2 className="text-lg font-medium text-black mb-6">Payment</h2>
-                <div className="border border-gray-300 p-6 text-center text-gray-500 text-sm bg-gray-50">
-                  This is a demonstration checkout. No real payments are processed.
-                </div>
+                {/* Payment provider information removed per request */}
               </div>
 
-              <button type="submit" className="w-full bg-black text-white h-14 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors mt-8">
-                Pay Now
+              <button type="submit" disabled={isSubmitting} className="w-full bg-black text-white h-14 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors mt-8 disabled:cursor-not-allowed disabled:bg-gray-400">
+                {isSubmitting ? "Starting Payment..." : "Pay Now"}
               </button>
             </form>
           </div>
 
-          {/* Right Column: Order Summary */}
           <div className="lg:col-span-5 relative">
             <div className="sticky top-8 bg-gray-50 p-8 border border-gray-100">
               <h2 className="text-sm font-bold uppercase tracking-widest text-black mb-6 border-b border-gray-200 pb-4">Order Summary</h2>
-              
+
               <div className="space-y-4 mb-6 border-b border-gray-200 pb-6 max-h-[40vh] overflow-y-auto pr-2 hide-scrollbar">
                 {items.map((item) => (
                   <div key={item.lineId} className="flex gap-4">
@@ -144,7 +409,7 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              <div className="space-y-3 text-sm text-gray-600 mb-6 border-b border-gray-200 pb-6">
+                <div className="space-y-3 text-sm text-gray-600 mb-6 border-b border-gray-200 pb-6">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span className="font-medium text-black">{formatPrice(subtotal)}</span>
@@ -156,6 +421,10 @@ export default function CheckoutPage() {
                 <div className="flex justify-between">
                   <span>Taxes</span>
                   <span className="font-medium text-black">{formatPrice(0)}</span>
+                </div>
+                <div className="flex justify-between text-gray-400">
+                  <span>Payment</span>
+                  <span>Razorpay</span>
                 </div>
               </div>
 

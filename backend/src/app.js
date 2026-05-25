@@ -1,15 +1,18 @@
 const cors = require("cors");
 const express = require("express");
-const { env } = require("./config/env");
 const { apiRouter } = require("./routes");
 const { notFoundHandler, errorHandler } = require("./middleware/error-handler");
 
 const app = express();
+const frontendOrigins = String(process.env.FRONTEND_ORIGIN || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || env.frontendOrigins.includes(origin)) {
+      if (!origin || frontendOrigins.includes(origin)) {
         callback(null, true);
         return;
       }

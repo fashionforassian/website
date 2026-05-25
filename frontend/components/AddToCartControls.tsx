@@ -12,6 +12,7 @@ type AddToCartControlsProps = {
     price: number;
     sizes: string[];
     colors: string[];
+    variantStocks?: Array<{ color: string; size: string; inventory: number; price?: number | null }>;
     inventory: number;
     status: "active" | "draft" | "archived";
   };
@@ -19,10 +20,14 @@ type AddToCartControlsProps = {
 
 export default function AddToCartControls({ product }: AddToCartControlsProps) {
   const { addToCart } = useCart();
-  const [selectedSize, setSelectedSize] = useState<string>(product.sizes[0] ?? "One Size");
-  const [selectedColor, setSelectedColor] = useState<string>(product.colors[0] ?? "Default");
+  const defaultVariantStock = product.variantStocks?.find((stock) => stock.inventory > 0) ?? product.variantStocks?.[0];
+  const displayPrice = defaultVariantStock?.price ?? product.price;
+  const [selectedSize, setSelectedSize] = useState<string>(defaultVariantStock?.size ?? product.sizes[0] ?? "One Size");
+  const [selectedColor, setSelectedColor] = useState<string>(defaultVariantStock?.color ?? product.colors[0] ?? "Default");
   const [added, setAdded] = useState(false);
-  const isAvailable = product.status === "active" && product.inventory > 0;
+  const isAvailable =
+    product.status === "active" &&
+    (product.variantStocks?.length ? product.variantStocks.some((stock) => stock.color === selectedColor && stock.size === selectedSize && stock.inventory > 0) : product.inventory > 0);
 
   const canAdd = useMemo(
     () => Boolean(selectedSize && selectedColor && isAvailable),
@@ -39,7 +44,7 @@ export default function AddToCartControls({ product }: AddToCartControlsProps) {
       slug: product.slug,
       name: product.name,
       image: product.image,
-      price: product.price,
+      price: displayPrice,
       size: selectedSize,
       color: selectedColor,
       quantity: 1,

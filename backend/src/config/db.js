@@ -1,15 +1,17 @@
 const { MongoClient } = require("mongodb");
-const { env } = require("./env");
 
 let clientPromise = null;
 
 async function getDb() {
-  if (!env.mongodbUri) {
+  const mongodbUri = process.env.MONGODB_URI || "";
+  const mongodbDbName = process.env.MONGODB_DB_NAME || "fashion_asia";
+
+  if (!mongodbUri) {
     throw new Error("Missing MONGODB_URI environment variable.");
   }
 
   if (!clientPromise) {
-    clientPromise = new MongoClient(env.mongodbUri).connect();
+    clientPromise = new MongoClient(mongodbUri).connect();
   }
 
   let client;
@@ -20,7 +22,7 @@ async function getDb() {
     throw error;
   }
 
-  return client.db(env.mongodbDbName);
+  return client.db(mongodbDbName);
 }
 
 async function getCollection(name) {

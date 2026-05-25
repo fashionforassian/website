@@ -10,10 +10,12 @@ type ProductCardProps = {
 export default function ProductCard({ product }: ProductCardProps) {
   const isAvailable = product.status === "active" && product.inventory > 0;
   const isOnSale = Boolean(product.isSale && product.compareAtPrice);
+  const defaultVariantStock = product.variantStocks?.find((stock) => stock.inventory > 0) ?? product.variantStocks?.[0];
+  const displayPrice = defaultVariantStock?.price ?? product.price;
 
   return (
-    <article className="group rounded-[24px] border border-transparent p-2 transition-all duration-300 hover:-translate-y-1 hover:border-neutral-200 hover:bg-white hover:shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-neutral-100">
+    <article className="group rounded-3xl border border-transparent p-2 transition-all duration-300 hover:-translate-y-1 hover:border-neutral-200 hover:bg-white hover:shadow-[0_18px_60px_rgba(17,17,17,0.06)]">
+      <div className="relative aspect-4/5 overflow-hidden rounded-[20px] bg-neutral-100">
         <Image
           src={product.image}
           alt={product.name}
@@ -48,7 +50,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="mt-4 space-y-1.5 px-1 pb-1">
         <h3 className="line-clamp-2 text-sm uppercase tracking-[0.12em] text-[#111111]">{product.name}</h3>
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <p className="text-[#222222]">{formatPrice(product.price)}</p>
+          <p className="text-[#222222]">{formatPrice(displayPrice)}</p>
           {isOnSale ? (
             <p className="text-neutral-400 line-through">{formatPrice(product.compareAtPrice ?? 0)}</p>
           ) : null}
@@ -59,12 +61,12 @@ export default function ProductCard({ product }: ProductCardProps) {
             slug: product.slug,
             name: product.name,
             image: product.image,
-            price: product.price,
+            price: displayPrice,
             inventory: product.inventory,
             status: product.status,
           }}
-          size={product.sizes[0]}
-          color={product.colors[0]}
+          size={defaultVariantStock?.size ?? product.sizes[0]}
+          color={defaultVariantStock?.color ?? product.colors[0]}
           className="mt-2 border border-neutral-300 px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-[#111111] hover:border-[#111111] hover:bg-[#111111] hover:text-white"
         />
       </div>

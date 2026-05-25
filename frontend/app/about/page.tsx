@@ -13,7 +13,7 @@ export default function AboutPage() {
         </p>
       </section>
 
-      <section className="mx-auto grid w-full max-w-[1440px] gap-4 px-4 md:grid-cols-2 md:px-8 pb-24">
+      <section className="mx-auto grid w-full max-w-360 gap-4 px-4 md:grid-cols-2 md:px-8 pb-24">
         <div className="relative h-[50vh] min-h-[400px] bg-gray-50">
           <Image src="https://images.unsplash.com/photo-1475180098004-ca77a66827be?auto=format&fit=crop&w=1200&q=80" alt="Fashion campaign model" fill className="object-cover" />
         </div>

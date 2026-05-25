@@ -5,6 +5,35 @@ async function getUserByClerkId(clerkUserId) {
   return collection.findOne({ clerkUserId }, { projection: { _id: 0 } });
 }
 
+async function getUserById(id) {
+  const collection = await getCollection("users");
+  return collection.findOne({ id }, { projection: { _id: 0 } });
+}
+
+async function listUsers() {
+  const collection = await getCollection("users");
+  const users = await collection.find({}, { projection: { _id: 0 } }).sort({ createdAt: -1 }).toArray();
+  return users;
+}
+
+async function updateUser(id, patch) {
+  const collection = await getCollection("users");
+  const current = await collection.findOne({ id }, { projection: { _id: 0 } });
+  if (!current) return null;
+
+  const next = {
+    ...current,
+    role: patch.role === undefined ? current.role : String(patch.role || "").trim(),
+    email: patch.email === undefined ? current.email : String(patch.email || "").toLowerCase(),
+    firstName: patch.firstName === undefined ? current.firstName : String(patch.firstName || "").trim(),
+    lastName: patch.lastName === undefined ? current.lastName : String(patch.lastName || "").trim(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  await collection.updateOne({ id }, { $set: next });
+  return next;
+}
+
 async function syncUserFromAuth({ clerkUserId, email, firstName, lastName }) {
   const collection = await getCollection("users");
   const now = new Date().toISOString();
@@ -39,5 +68,8 @@ async function syncUserFromAuth({ clerkUserId, email, firstName, lastName }) {
 
 module.exports = {
   getUserByClerkId,
+  getUserById,
   syncUserFromAuth,
+  listUsers,
+  updateUser,
 };

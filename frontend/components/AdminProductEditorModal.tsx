@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import AdminStructuredFields from "@/components/AdminStructuredFields";
-import { type EditableColorVariant, type ProductFormState } from "@/lib/admin-product-form";
+import { type EditableColorVariant, type EditableVariantStock, type ProductFormState } from "@/lib/admin-product-form";
 import { type Category, type ProductStatus } from "@/lib/data";
 
 type Props = {
@@ -15,6 +15,8 @@ type Props = {
   uploading: boolean;
   categoryOptions: Category[];
   categoryPathOptions: Array<{ key: string; slugs: string[]; label: string }>;
+  colorVariants: EditableColorVariant[];
+  variantStocks: EditableVariantStock[];
   onClose: () => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   updateForm: <K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => void;
@@ -26,17 +28,12 @@ type Props = {
   removeColorVariant: (id: string) => void;
   updateColorVariant: (id: string, patch: Partial<EditableColorVariant>) => void;
   makeDefaultColorVariant: (id: string) => void;
-  handleCoverUpload: (files: FileList | null, cropFocus?: "center" | "north" | "south" | "east" | "west") => Promise<void>;
-  handleGalleryAppend: (files: FileList | null) => Promise<void>;
-  handleGalleryReplace: (index: number, files: FileList | null) => Promise<void>;
-  removeGalleryImage: (index: number) => void;
-  makeCoverImage: (index: number) => void;
-  reorderGalleryImages: (fromIndex: number, toIndex: number) => void;
-  handleColorImageUpload: (colorId: string, files: FileList | null, cropFocus?: "center" | "north" | "south" | "east" | "west") => Promise<void>;
+  handleColorImageUpload: (colorId: string, files: FileList | null) => Promise<void>;
   handleColorGalleryAppend: (colorId: string, files: FileList | null) => Promise<void>;
   handleColorGalleryReplace: (colorId: string, index: number, files: FileList | null) => Promise<void>;
   removeColorGalleryImage: (colorId: string, index: number) => void;
   reorderColorGalleryImages: (colorId: string, fromIndex: number, toIndex: number) => void;
+  updateVariantStock: (color: string, size: string, patch: { inventory?: string; price?: string }) => void;
 };
 
 export default function AdminProductEditorModal({
@@ -49,6 +46,8 @@ export default function AdminProductEditorModal({
   uploading,
   categoryOptions,
   categoryPathOptions,
+  colorVariants,
+  variantStocks,
   onClose,
   onSubmit,
   updateForm,
@@ -60,19 +59,13 @@ export default function AdminProductEditorModal({
   removeColorVariant,
   updateColorVariant,
   makeDefaultColorVariant,
-  handleCoverUpload,
-  handleGalleryAppend,
-  handleGalleryReplace,
-  removeGalleryImage,
-  makeCoverImage,
-  reorderGalleryImages,
   handleColorImageUpload,
   handleColorGalleryAppend,
   handleColorGalleryReplace,
   removeColorGalleryImage,
   reorderColorGalleryImages,
+  updateVariantStock,
 }: Props) {
-  const [coverCropFocus, setCoverCropFocus] = useState<"center" | "north" | "south" | "east" | "west">("center");
   const selectedPathKey = form.categoryPathSlugs.length ? form.categoryPathSlugs.join("/") : "";
 
   useEffect(() => {
@@ -112,7 +105,7 @@ export default function AdminProductEditorModal({
 
   return (
     <div
-      className="fixed inset-0 z-[80] overflow-y-auto bg-black/70 px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8"
+      className="fixed inset-0 z-80 overflow-y-auto bg-black/70 px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8"
       onClick={onClose}
       onWheelCapture={(event) => event.stopPropagation()}
       onTouchMoveCapture={(event) => event.stopPropagation()}
@@ -144,7 +137,7 @@ export default function AdminProductEditorModal({
           onTouchMoveCapture={(event) => event.stopPropagation()}
           className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-6"
         >
-          <div className="space-y-8">
+          <div className="space-y-5">
           {message ? (
             <p
               aria-live="polite"
@@ -160,9 +153,9 @@ export default function AdminProductEditorModal({
             </p>
           ) : null}
 
-          <div className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr] xl:gap-8">
-            <div className="space-y-6">
-              <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-4 xl:grid-cols-[1.05fr,0.95fr] xl:gap-6">
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-2">
                   <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Product Name</span>
                   <input value={form.name} onChange={(e) => updateForm("name", e.target.value)} className="h-11 w-full border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]" required />
@@ -223,10 +216,6 @@ export default function AdminProductEditorModal({
                   <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Inventory</span>
                   <input type="number" min="0" value={form.inventory} onChange={(e) => updateForm("inventory", e.target.value)} className="h-11 w-full border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]" required />
                 </label>
-                <label className="space-y-2">
-                  <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Popularity</span>
-                  <input type="number" min="1" max="100" value={form.popularity} onChange={(e) => updateForm("popularity", e.target.value)} className="h-11 w-full border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]" />
-                </label>
                 <label className="space-y-2 md:col-span-2">
                   <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Status</span>
                   <select value={form.status} onChange={(e) => updateForm("status", e.target.value as ProductStatus)} className="h-11 w-full border border-neutral-300 px-4 text-sm outline-none focus:border-[#111111]">
@@ -237,7 +226,7 @@ export default function AdminProductEditorModal({
                 </label>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-2">
                   <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Description</span>
                   <textarea value={form.description} onChange={(e) => updateForm("description", e.target.value)} rows={6} className="w-full border border-neutral-300 px-4 py-3 text-sm outline-none focus:border-[#111111]" />
@@ -249,15 +238,15 @@ export default function AdminProductEditorModal({
               </div>
 
               <div className="grid gap-3 md:grid-cols-3">
-                <label className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-4">
+                <label className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-3">
                   <input type="checkbox" checked={form.isNew} onChange={(e) => updateForm("isNew", e.target.checked)} />
                   <span className="text-sm text-[#222222]">Mark as new</span>
                 </label>
-                <label className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-4">
+                <label className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-3">
                   <input type="checkbox" checked={form.isFeatured} onChange={(e) => updateForm("isFeatured", e.target.checked)} />
                   <span className="text-sm text-[#222222]">Feature on storefront</span>
                 </label>
-                <label className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-4">
+                <label className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-3">
                   <input type="checkbox" checked={form.isSale} onChange={(e) => updateForm("isSale", e.target.checked)} />
                   <span className="text-sm text-[#222222]">Treat as sale item</span>
                 </label>
@@ -266,9 +255,10 @@ export default function AdminProductEditorModal({
 
             <div className="space-y-6">
               <AdminStructuredFields
-                colorVariants={form.colorVariants}
                 sizes={form.sizes}
                 tags={form.tags}
+                colorVariants={colorVariants}
+                variantStocks={variantStocks}
                 uploading={uploading}
                 addSize={addSize}
                 removeSize={removeSize}
@@ -283,111 +273,8 @@ export default function AdminProductEditorModal({
                 handleColorGalleryReplace={handleColorGalleryReplace}
                 removeColorGalleryImage={removeColorGalleryImage}
                 reorderColorGalleryImages={reorderColorGalleryImages}
+                updateVariantStock={updateVariantStock}
               />
-
-              <div className="rounded-2xl border border-neutral-200 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">Fallback Cover Image</p>
-                    <p className="mt-1 text-sm text-[#222222]">Used when a color-specific cover is not set.</p>
-                  </div>
-                  <label className="cursor-pointer border border-[#111111] px-4 py-2 text-xs uppercase tracking-[0.16em] text-[#111111] hover:bg-[#111111] hover:text-white">
-                    {uploading ? "Uploading..." : "Upload"}
-                    <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => void handleCoverUpload(e.target.files, coverCropFocus)} />
-                  </label>
-                </div>
-                <select
-                  value={coverCropFocus}
-                  onChange={(event) => setCoverCropFocus(event.target.value as "center" | "north" | "south" | "east" | "west")}
-                  className="mt-3 h-10 w-full border border-neutral-300 px-3 text-[11px] uppercase tracking-[0.16em] text-[#111111] outline-none focus:border-[#111111]"
-                >
-                  <option value="center">Cover Crop: Center</option>
-                  <option value="north">Cover Crop: Top</option>
-                  <option value="south">Cover Crop: Bottom</option>
-                  <option value="east">Cover Crop: Right</option>
-                  <option value="west">Cover Crop: Left</option>
-                </select>
-                <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-neutral-500">
-                  Cover uploads are auto-cropped to 4:5, resized, and compressed.
-                </p>
-                <div className="mt-4 overflow-hidden rounded-2xl border border-neutral-200">
-                  {form.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={form.image}
-                      alt={form.name || "Cover preview"}
-                      className="aspect-[4/5] w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex aspect-[4/5] items-center justify-center text-sm text-neutral-500">
-                      No cover image yet.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-neutral-200 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-500">General Gallery</p>
-                    <p className="mt-1 text-sm text-[#222222]">Shared fallback images for every color variant.</p>
-                  </div>
-                  <label className="cursor-pointer border border-neutral-300 px-4 py-2 text-xs uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]">
-                    {uploading ? "Uploading..." : "Add Images"}
-                    <input type="file" accept="image/*" multiple className="hidden" disabled={uploading} onChange={(e) => void handleGalleryAppend(e.target.files)} />
-                  </label>
-                </div>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  {form.images.length === 0 ? (
-                    <div className="col-span-full flex h-40 items-center justify-center border border-dashed border-neutral-300 text-sm text-neutral-500">
-                      No gallery images yet.
-                    </div>
-                  ) : (
-                    form.images.map((image, index) => (
-                      <div
-                        key={`${image}-${index}`}
-                        className="rounded-2xl border border-neutral-200 p-3"
-                        draggable
-                        onDragStart={(event) => event.dataTransfer.setData("text/gallery-index", String(index))}
-                        onDragOver={(event) => event.preventDefault()}
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          const fromIndex = Number(event.dataTransfer.getData("text/gallery-index"));
-                          if (!Number.isNaN(fromIndex)) {
-                            reorderGalleryImages(fromIndex, index);
-                          }
-                        }}
-                      >
-                        <div className="overflow-hidden rounded-xl border border-neutral-200">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={image}
-                            alt={`Preview ${index + 1}`}
-                            className="aspect-[4/5] w-full object-cover"
-                          />
-                        </div>
-                        <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-neutral-400">
-                          Drag to reorder
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <label className="cursor-pointer border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]">
-                            Replace
-                            <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => void handleGalleryReplace(index, e.target.files)} />
-                          </label>
-                          {index !== 0 ? (
-                            <button type="button" onClick={() => makeCoverImage(index)} className="border border-neutral-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-[#111111] hover:border-[#111111]">
-                              Make Cover
-                            </button>
-                          ) : null}
-                          <button type="button" onClick={() => removeGalleryImage(index)} className="border border-red-300 px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-red-600 hover:border-red-600">
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
             </div>
           </div>
 

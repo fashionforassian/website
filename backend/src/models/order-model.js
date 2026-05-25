@@ -6,6 +6,11 @@ function mapOrder(order) {
     trackingNumber: order.trackingNumber ?? null,
     adminNotes: order.adminNotes ?? "",
     status: order.status ?? "placed",
+    paymentMethod: order.paymentMethod ?? "offline",
+    paymentStatus: order.paymentStatus ?? "pending",
+    shippingAddress: order.shippingAddress ?? null,
+    razorpayOrderId: order.razorpayOrderId ?? null,
+    razorpayPaymentId: order.razorpayPaymentId ?? null,
   };
 }
 

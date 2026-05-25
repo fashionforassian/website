@@ -2,7 +2,7 @@ const serverBase = process.env.BACKEND_API_URL;
 const publicBase = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export function getBackendBaseUrl(): string {
-  const base = serverBase || publicBase || "http://localhost:4000";
+  const base = serverBase || publicBase || "http://localhost:5000";
   return base.replace(/\/$/, "");
 }
 

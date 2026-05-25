@@ -1,18 +1,112 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useState } from "react";
 import { ClerkLoaded, UserButton, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/providers/CartProvider";
+import { buildBackendUrl } from "@/lib/backend-api";
 import { navCategories } from "@/lib/data";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminStatusLoaded, setAdminStatusLoaded] = useState(false);
   const { cartCount, setIsCartOpen } = useCart();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const router = useRouter();
+  const hasSyncedSession = useRef(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      hasSyncedSession.current = false;
+      return;
+    }
+
+    if (hasSyncedSession.current) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function syncSession() {
+      try {
+        const token = await getToken();
+        if (!token || cancelled) {
+          return;
+        }
+
+        await fetch(buildBackendUrl("/api/auth/session"), {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+      } catch {
+        // The admin gate still enforces MongoDB role checks on demand.
+      }
+    }
+
+    hasSyncedSession.current = true;
+    void syncSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken, isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      setIsAdmin(false);
+      setAdminStatusLoaded(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function checkAdminAccess() {
+      try {
+        const token = await getToken();
+        if (!token || cancelled) {
+          return;
+        }
+
+        const response = await fetch(buildBackendUrl("/api/admin/me"), {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        setIsAdmin(response.ok);
+        setAdminStatusLoaded(true);
+      } catch {
+        if (cancelled) {
+          return;
+        }
+
+        setIsAdmin(false);
+        setAdminStatusLoaded(true);
+      }
+    }
+
+    void checkAdminAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken, isLoaded, isSignedIn]);
 
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,7 +122,7 @@ export default function Navbar() {
       </div>
 
       <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-200">
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 max-w-360 items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Mobile Menu Toggle */}
           <button
             className="lg:hidden p-2 -ml-2 text-black"
@@ -69,6 +163,12 @@ export default function Navbar() {
             </div>
 
             <ClerkLoaded>
+              {adminStatusLoaded && isAdmin && (
+                <Link href="/admin" className="hidden lg:block hover:text-gray-500 transition-colors">
+                  ADMIN PANEL
+                </Link>
+              )}
+
               {!isSignedIn ? (
                 <Link href="/sign-in" className="hidden lg:block hover:text-gray-500 transition-colors">
                   LOG IN
@@ -85,7 +185,7 @@ export default function Navbar() {
               className="hover:text-gray-500 transition-colors flex items-center gap-1"
             >
               <span>CART</span>
-              {cartCount > 0 && <span>({cartCount})</span>}
+              {mounted && cartCount > 0 && <span>({cartCount})</span>}
             </button>
           </div>
         </div>
@@ -119,7 +219,12 @@ export default function Navbar() {
                 Log In
               </Link>
             ) : (
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col gap-3">
+                {adminStatusLoaded && isAdmin && (
+                  <Link href="/admin" className="text-sm font-medium uppercase tracking-widest text-black" onClick={() => setMobileMenuOpen(false)}>
+                    Admin Panel
+                  </Link>
+                )}
                 <UserButton />
               </div>
             )}

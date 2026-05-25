@@ -10,7 +10,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-[1440px] mx-auto px-4 py-32 sm:px-6 lg:px-8 text-center min-h-[60vh] flex flex-col justify-center items-center">
+      <div className="max-w-360 mx-auto px-4 py-32 sm:px-6 lg:px-8 text-center min-h-[60vh] flex flex-col justify-center items-center">
         <h1 className="text-3xl font-bold uppercase tracking-tight text-black mb-6">Your Cart is Empty</h1>
         <p className="text-gray-500 mb-8 max-w-md mx-auto">Looks like you haven't added anything to your cart yet.</p>
         <Link href="/products" className="bg-black text-white px-10 py-4 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors">
@@ -21,7 +21,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 py-16 sm:px-6 lg:px-8">
+    <div className="max-w-360 mx-auto px-4 py-16 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold uppercase tracking-tight text-black mb-12">Shopping Cart</h1>
 
       <div className="grid lg:grid-cols-12 gap-12">

@@ -25,6 +25,28 @@ function normalizeSlugList(items) {
   );
 }
 
+function toNonNegativeInteger(value, fallback = 0) {
+  const parsed = Math.floor(Number(value));
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+function toNullablePrice(value) {
+  if (value === undefined || value === null || String(value).trim() === "") {
+    return null;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return parsed;
+}
+
 function getColorSwatchValue(name, fallback) {
   if (fallback && fallback.trim()) return fallback.trim();
 
@@ -47,6 +69,45 @@ function getColorSwatchValue(name, fallback) {
   };
 
   return map[String(name || "").trim().toLowerCase()] || "#D4CEC3";
+}
+
+function normalizeVariantStocks(input, existing) {
+  const rawStocks = Array.isArray(input.variantStocks) ? input.variantStocks : [];
+  const fallbackColors = normalizeList(input.colors || existing?.colors || []);
+  const fallbackSizes = normalizeList(input.sizes || existing?.sizes || []);
+
+  if (!rawStocks.length) {
+    return [];
+  }
+
+  const seen = new Set();
+
+  return rawStocks
+    .map((stock, index) => {
+      const color = String(stock.color || fallbackColors[0] || "").trim();
+      const size = String(stock.size || fallbackSizes[0] || "").trim();
+      const inventory = toNonNegativeInteger(stock.inventory);
+
+      if (!color || !size) {
+        return null;
+      }
+
+      const id = slugify(stock.id || `${color}-${size}`) || `variant-${index + 1}`;
+      const key = `${color.toLowerCase()}__${size.toLowerCase()}`;
+      if (seen.has(key)) {
+        return null;
+      }
+      seen.add(key);
+
+      return {
+        id,
+        color,
+        size,
+        inventory,
+        price: toNullablePrice(stock.price),
+      };
+    })
+    .filter(Boolean);
 }
 
 function normalizeColorVariants(input, existing) {
@@ -98,11 +159,14 @@ function normalizeProduct(input, existing) {
   const colorVariants = normalizeColorVariants(input, existing).filter((variant) => variant.image);
   const colors = normalizeList(colorVariants.map((variant) => variant.name));
   const sizes = normalizeList(input.sizes || []);
+  const variantStocks = normalizeVariantStocks(input, existing);
+  const inventory = variantStocks.length
+    ? variantStocks.reduce((total, stock) => total + stock.inventory, 0)
+    : toNonNegativeInteger(input.inventory);
   const images = normalizeList([...(input.images || []), ...colorVariants.flatMap((variant) => variant.images)]);
   const image = String(input.image || "").trim() || colorVariants[0]?.image || images[0] || existing?.image || "";
   const price = Number(input.price);
   const compareAtPrice = input.compareAtPrice && Number(input.compareAtPrice) > price ? Number(input.compareAtPrice) : null;
-  const inventory = Math.max(0, Math.floor(Number(input.inventory)));
   const category = slugify(input.category || existing?.category);
   const categoryPathSlugsInput = normalizeSlugList(input.categoryPathSlugs || existing?.categoryPathSlugs || []);
   const categoryPathLabelsInput = normalizeList(input.categoryPathLabels || existing?.categoryPathLabels || []);
@@ -155,6 +219,7 @@ function normalizeProduct(input, existing) {
             images,
           },
         ],
+    variantStocks,
     description: String(input.description || "").trim(),
     fabricCare: String(input.fabricCare || "").trim(),
     popularity: Math.max(1, Math.min(100, Math.floor(Number(input.popularity) || 1))),

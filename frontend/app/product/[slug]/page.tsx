@@ -27,7 +27,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     .slice(0, 4);
 
   return (
-    <main className="mx-auto w-full max-w-[1400px] px-4 py-10 md:px-8 md:py-14">
+    <main className="mx-auto w-full max-w-7xl px-4 py-10 md:px-8 md:py-14">
       <div className="mb-10 text-xs uppercase tracking-[0.14em] text-neutral-500">
         <Link href="/products" className="hover:text-[#111111]">
           Shop All

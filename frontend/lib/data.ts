@@ -10,6 +10,14 @@ export type ProductColorVariant = {
   images: string[];
 };
 
+export type ProductVariantStock = {
+  id: string;
+  color: string;
+  size: string;
+  inventory: number;
+  price?: number | null;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -26,6 +34,7 @@ export type Product = {
   image: string;
   images: string[];
   colorVariants: ProductColorVariant[];
+  variantStocks?: ProductVariantStock[];
   description: string;
   fabricCare: string;
   popularity: number;
@@ -39,17 +48,18 @@ export type Product = {
 
 export type SeedProduct = Omit<
   Product,
-  "sku" | "compareAtPrice" | "inventory" | "status" | "isFeatured" | "isSale" | "tags" | "colorVariants"
+  "sku" | "compareAtPrice" | "inventory" | "status" | "isFeatured" | "isSale" | "tags" | "colorVariants" | "variantStocks"
 > &
   Partial<
     Pick<
       Product,
-      "sku" | "compareAtPrice" | "inventory" | "status" | "isFeatured" | "isSale" | "tags" | "colorVariants"
+      "sku" | "compareAtPrice" | "inventory" | "status" | "isFeatured" | "isSale" | "tags" | "colorVariants" | "variantStocks"
     >
   >;
 
 export const navCategories: Array<{ label: string; href: string }> = [
   { label: "Men", href: "/men" },
+  { label: "Women", href: "/women" },
   { label: "Kids", href: "/kids" },
   { label: "New Arrivals", href: "/new-arrivals" },
   { label: "Collections", href: "/collections" },
